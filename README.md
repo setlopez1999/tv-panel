@@ -2,11 +2,13 @@
 
 Panel web local para TVs **LG webOS** y **Android TV**. Sin auth — solo red local.
 
-Docs: [`doc/`](doc/README.md)
+Docs: [`doc/`](doc/README.md) · Repo: [github.com/setlopez1999/tv-panel](https://github.com/setlopez1999/tv-panel)
 
-## Inicio
+## Clonar e iniciar
 
 ```powershell
+git clone https://github.com/setlopez1999/tv-panel.git
+cd tv-panel
 pip install -r requirements.txt
 pip install git+https://github.com/klattimer/LGWebOSRemote.git
 python app.py
@@ -15,6 +17,14 @@ python app.py
 La consola muestra la URL, ej: `http://192.168.0.53:5000`. Compártela con el equipo (misma red).
 
 Requisitos en PATH: `lgtv`, `adb`, `scrcpy` (Android). Comprueba con `GET /api/health`.
+
+## Subir cambios
+
+```powershell
+git add .
+git commit -m "Descripción del cambio"
+git push
+```
 
 ## Cómo probar
 
