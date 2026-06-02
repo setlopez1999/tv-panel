@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+uploads/
+tmp_screen_*.png
+.venv/
+venv/

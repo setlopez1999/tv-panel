@@ -1,0 +1,12 @@
+{
+  "connections": {
+    "lg": [
+      {
+        "name": "LG_0-0",
+        "ip": "192.168.0.196",
+        "status": "unknown"
+      }
+    ],
+    "android": []
+  }
+}

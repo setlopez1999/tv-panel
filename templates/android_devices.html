@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h1>🤖 Gestión Android TV</h1>
+    <div class="form-group">
+        <button class="btn btn-secondary" onclick="listAdbDevices()">📋 Listar dispositivos ADB</button>
+        <p class="hint">El «Código ADB» es lo que muestra <code>adb devices</code> (ej: <code>192.168.0.50:5555</code>).</p>
+    </div>
+    <div class="form-group">
+        <h3>Agregar dispositivo</h3>
+        <input type="text" id="android-name" placeholder="Nombre (ej: TV Sala)">
+        <input type="text" id="android-ip" placeholder="IP (ej: 192.168.0.50)">
+        <input type="text" id="android-code" placeholder="Código ADB (opcional, default IP:5555)">
+        <button class="btn" onclick="addAndroid()">➕ Agregar</button>
+    </div>
+</div>
+
+<div class="grid">
+    {% for device in devices %}
+    <div class="card">
+        <h3>{{ device.name }}</h3>
+        <p>IP: <code>{{ device.ip }}</code></p>
+        <p>Código ADB: <code>{{ device.device_code }}</code></p>
+        <p class="hint">scrcpy: <code>scrcpy -s {{ device.device_code }}</code></p>
+
+        <div style="margin-top: 1rem;">
+            <button class="btn btn-secondary" onclick="connectAndroid('{{ device.ip }}')">🔗 Conectar ADB</button>
+            <button class="btn" onclick="openUrlAndroid('{{ device.ip }}')">🌐 Abrir URL</button>
+            <button class="btn btn-success" onclick="quickUrlAndroid('{{ device.ip }}', 'https://youtube.com')">▶ YouTube</button>
+            <button class="btn" onclick="openAppAndroid('{{ device.ip }}')">📱 Abrir App</button>
+            <button class="btn btn-success" onclick="startScrcpy('{{ device.ip }}')">📺 scrcpy (PC servidor)</button>
+            <a class="btn btn-secondary" href="/api/android/launcher/{{ device.ip }}">💻 Abrir en mi PC (.cmd)</a>
+            <button class="btn btn-secondary" onclick="takeScreenshot('{{ device.ip }}')">📸 Ver pantalla (navegador)</button>
+            <button class="btn btn-danger" onclick="removeAndroid('{{ device.ip }}')">🗑️ Eliminar</button>
+        </div>
+
+        <p class="hint" style="margin-top:0.5rem;">
+            scrcpy en servidor solo se ve en ese PC. «Abrir en mi PC» descarga un script si tienes adb/scrcpy instalados.
+        </p>
+
+        <div id="url-form-{{ device.ip }}" style="display:none; margin-top:0.5rem;">
+            <input type="text" id="url-input-{{ device.ip }}" value="https://youtube.com">
+            <button class="btn btn-success" onclick="sendUrlAndroid('{{ device.ip }}')">✓ Enviar</button>
+        </div>
+
+        <div id="app-form-{{ device.ip }}" style="display:none; margin-top:0.5rem;">
+            <input type="text" id="app-input-{{ device.ip }}" value="com.android.chrome">
+            <button class="btn btn-success" onclick="sendAppAndroid('{{ device.ip }}')">✓ Abrir</button>
+        </div>
+
+        <div id="apk-form-{{ device.ip }}" style="margin-top:0.5rem;">
+            <input type="file" id="apk-file-{{ device.ip }}" accept=".apk">
+            <button class="btn btn-success" onclick="installApk('{{ device.ip }}')">📦 Instalar APK</button>
+        </div>
+
+        <div id="screenshot-{{ device.ip }}" style="margin-top:1rem;"></div>
+    </div>
+    {% else %}
+    <div class="card"><p>No hay dispositivos Android. Agrega uno con IP y código ADB.</p></div>
+    {% endfor %}
+</div>
+
+<script>
+    async function listAdbDevices() {
+        log('Consultando adb devices...');
+        await apiCall('/api/android/devices');
+    }
+
+    async function addAndroid() {
+        const name = document.getElementById('android-name').value;
+        const ip = document.getElementById('android-ip').value;
+        const code = document.getElementById('android-code').value || null;
+        if (!name || !ip) return alert('Nombre e IP son obligatorios');
+        await apiCall('/api/android/add', {
+            method: 'POST',
+            body: JSON.stringify({ name, ip, device_code: code })
+        });
+        location.reload();
+    }
+
+    async function connectAndroid(ip) {
+        log(`Conectando ADB a ${ip}...`);
+        await apiCall(`/api/android/connect/${ip}`, { method: 'POST' });
+    }
+
+    function openUrlAndroid(ip) {
+        document.getElementById(`url-form-${ip}`).style.display = 'block';
+    }
+
+    async function sendUrlAndroid(ip) {
+        const url = document.getElementById(`url-input-${ip}`).value;
+        await apiCall('/api/android/open-url', { method: 'POST', body: JSON.stringify({ ip, url }) });
+    }
+
+    async function quickUrlAndroid(ip, url) {
+        await apiCall('/api/android/open-url', { method: 'POST', body: JSON.stringify({ ip, url }) });
+    }
+
+    function openAppAndroid(ip) {
+        document.getElementById(`app-form-${ip}`).style.display = 'block';
+    }
+
+    async function sendAppAndroid(ip) {
+        const pkg = document.getElementById(`app-input-${ip}`).value;
+        await apiCall('/api/android/open-app', { method: 'POST', body: JSON.stringify({ ip, package: pkg }) });
+    }
+
+    async function startScrcpy(ip) {
+        log('Iniciando scrcpy en el PC servidor...');
+        await apiCall(`/api/android/scrcpy/${ip}`, { method: 'POST' });
+    }
+
+    async function takeScreenshot(ip) {
+        log(`Capturando pantalla de ${ip}...`);
+        const res = await fetch(`/api/android/screenshot/${ip}`);
+        if (res.ok) {
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            document.getElementById(`screenshot-${ip}`).innerHTML =
+                `<img src="${url}" alt="screenshot" style="max-width:100%; border-radius:5px;">`;
+            log('Screenshot mostrado en el navegador');
+        } else {
+            const err = await res.json().catch(() => ({}));
+            log(formatApiMessage(err));
+        }
+    }
+
+    async function installApk(ip) {
+        const fileInput = document.getElementById(`apk-file-${ip}`);
+        if (!fileInput.files.length) return alert('Selecciona un APK');
+        const formData = new FormData();
+        formData.append('apk', fileInput.files[0]);
+        formData.append('ip', ip);
+        log(`Instalando APK en ${ip}...`);
+        await apiCall('/api/android/install-apk', { method: 'POST', body: formData });
+    }
+
+    async function removeAndroid(ip) {
+        if (!confirm('¿Eliminar este dispositivo?')) return;
+        await apiCall(`/api/android/remove/${ip}`, { method: 'DELETE' });
+        location.reload();
+    }
+</script>
+{% endblock %}

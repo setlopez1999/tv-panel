@@ -1,0 +1,3 @@
+Flask==3.0.3
+wakeonlan==3.3.0
+requests==2.33.1

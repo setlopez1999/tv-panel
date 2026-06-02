@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h1>🎯 TV Control Panel - NOC</h1>
+    <p>Panel local sin autenticación. Las acciones (ADB, lgtv, APK) se ejecutan en el <strong>PC servidor</strong>.</p>
+    <p><strong>IP del servidor en esta red:</strong> <code>{{ server_ip }}</code></p>
+    <p>Comparte con el equipo: <code>http://{{ server_ip }}:5000</code></p>
+    <p class="hint">Si entras por otra URL, usa la IP del servidor de arriba.</p>
+</div>
+
+<div class="grid">
+    {% for ct in connection_types %}
+    <div class="card">
+        <h2>{{ ct.icon }} {{ ct.display_name }}</h2>
+        {% if ct.id == 'lg' %}
+        <p>Registradas: <strong>{{ devices.lg_tvs|length }}</strong></p>
+        {% elif ct.id == 'android' %}
+        <p>Registradas: <strong>{{ devices.android_devices|length }}</strong></p>
+        {% endif %}
+        <a href="{{ ct.route }}" class="btn">Gestionar</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

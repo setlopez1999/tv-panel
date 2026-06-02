@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Control Panel - NOC</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+        }
+        .navbar {
+            background: #16213e;
+            padding: 1rem 2rem;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #0f3460;
+        }
+        .navbar a {
+            color: #e94560;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .navbar a:hover { color: #fff; }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .card {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #0f3460;
+        }
+        .btn {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin: 0.2rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover { background: #c13651; }
+        .btn-secondary { background: #0f3460; }
+        .btn-success { background: #16c79a; }
+        .btn-danger { background: #c13651; }
+        input, select {
+            padding: 0.5rem;
+            border-radius: 5px;
+            border: 1px solid #0f3460;
+            background: #1a1a2e;
+            color: #fff;
+            margin: 0.2rem;
+        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+        .status-online { color: #16c79a; }
+        .status-offline { color: #e94560; }
+        .hint { color: #888; font-size: 0.85rem; margin-top: 0.3rem; }
+        .log-box {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 1rem;
+            font-family: monospace;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 1rem;
+            white-space: pre-wrap;
+        }
+        h1, h2 { color: #e94560; margin-bottom: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.3rem; color: #aaa; }
+    </style>
+    <script>
+        function log(message) {
+            const box = document.getElementById('log-box');
+            if (box) {
+                box.textContent += `[${new Date().toLocaleTimeString()}] ${message}\n`;
+                box.scrollTop = box.scrollHeight;
+            }
+        }
+
+        function formatApiMessage(data) {
+            if (!data) return 'Sin respuesta';
+            if (data.message) return data.message;
+            if (data.success === true) return 'Operación correcta';
+            if (data.success === false && data.error) return data.error;
+            if (data.result === 'ok') return 'OK';
+            if (data.added !== undefined) return `Escaneo: ${data.added} TV(s) nuevas guardadas`;
+            return typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+        }
+
+        async function apiCall(url, options = {}) {
+            const isForm = options.body instanceof FormData;
+            const headers = isForm ? {} : { 'Content-Type': 'application/json' };
+            try {
+                const res = await fetch(url, { ...options, headers: { ...headers, ...options.headers } });
+                const ct = res.headers.get('content-type') || '';
+                if (ct.includes('application/json')) {
+                    const data = await res.json();
+                    log(formatApiMessage(data));
+                    return data;
+                }
+                return { success: res.ok, message: res.ok ? 'OK' : 'Error en la petición' };
+            } catch (e) {
+                log('Error: ' + e.message);
+                return { success: false, message: e.message };
+            }
+        }
+    </script>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/">🏠 Dashboard</a>
+        {% for ct in connection_types %}
+        <a href="{{ ct.route }}">{{ ct.icon }} {{ ct.display_name }}</a>
+        {% endfor %}
+    </nav>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+    <div class="container">
+        <div class="card">
+            <h3>📋 Log de operaciones</h3>
+            <div id="log-box" class="log-box">Listo para operaciones...</div>
+        </div>
+    </div>
+</body>
+</html>
