@@ -6,7 +6,7 @@ from flask import Flask, jsonify, render_template
 from config import add_android_device, add_lg_tv, get_server_ip, legacy_view, load_devices
 from modules.registry import list_connection_types
 from routes import android_bp, lg_bp
-from tools_paths import get_adb_path, get_scrcpy_path, tools_info
+from tools_paths import get_adb_path, get_ares_path, get_scrcpy_path, tools_info
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = os.path.abspath("uploads")
@@ -57,7 +57,7 @@ def add_device_unified():
 @app.route("/api/health")
 def health():
     info = tools_info()
-    checks = {"lgtv": False, "adb": False, "scrcpy": False}
+    checks = {"lgtv": False, "adb": False, "scrcpy": False, "ares": info.get("ares_ok", False)}
     try:
         r = subprocess.run("lgtv scan", shell=True, capture_output=True, timeout=8)
         checks["lgtv"] = r.returncode == 0 or bool(r.stdout)
@@ -73,6 +73,12 @@ def health():
         checks["scrcpy"] = r.returncode == 0
     except Exception:
         pass
+    if not checks["ares"]:
+        try:
+            r = subprocess.run([get_ares_path(), "-V"], capture_output=True, timeout=5)
+            checks["ares"] = r.returncode == 0
+        except Exception:
+            pass
     return jsonify({"ok": True, "tools": checks, "paths": info, "server_ip": get_server_ip()})
 
 
@@ -81,4 +87,5 @@ if __name__ == "__main__":
     print(f"TV Control Panel → http://{get_server_ip()}:5000")
     print(f"ADB: {t['adb']}")
     print(f"scrcpy: {t['scrcpy']}")
+    print(f"ares: {t['ares']} ({'OK' if t.get('ares_ok') else 'no instalado'})")
     app.run(host="0.0.0.0", port=5000, debug=False)

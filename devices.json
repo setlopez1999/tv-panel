@@ -5,7 +5,12 @@
         "name": "LG_0-0",
         "ip": "192.168.0.196",
         "status": "paired",
-        "lgtv_alias": "tv_lg_0_0"
+        "lgtv_alias": "tv_lg_0_0",
+        "ares_port": 9922,
+        "ares_user": "developer",
+        "ares_linked": false,
+        "cached_ares_packages": [],
+        "ares_device": "lgtv_lg_0_0"
       }
     ],
     "android": [

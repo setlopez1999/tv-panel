@@ -11,12 +11,13 @@ git clone https://github.com/setlopez1999/tv-panel.git
 cd tv-panel
 pip install -r requirements.txt
 pip install git+https://github.com/klattimer/LGWebOSRemote.git
+npm install -g @webos-tools/cli
 python app.py
 ```
 
 La consola muestra la URL, ej: `http://192.168.0.53:5000`. Compártela con el equipo (misma red).
 
-`lgtv` en PATH (LG). Android usa **adb/scrcpy** de `settings.json` (por defecto carpeta scrcpy-win64). Comprueba: `GET /api/health`.
+`lgtv` (LG remoto). `ares` (LG instalar `.ipk`, Developer Mode). Android: **adb/scrcpy** en `settings.json`. Comprueba: `GET /api/health`.
 
 ## Subir cambios
 
@@ -30,12 +31,11 @@ git push
 
 ### LG webOS
 
-1. Abre **LG webOS** en el panel.
-2. **Escanear red y guardar** (o agrega IP manual).
-3. **Autenticar** → acepta el popup en la TV.
-4. Pulsa **▶ YouTube** o **Abrir URL**.
+**Control (lgtv):** Escanear → Emparejar lgtv → YouTube web / Apps del sistema.
 
-Si falla, prueba en terminal: `lgtv scan` y `lgtv --ssl openBrowserAt https://youtube.com`.
+**Instalar IPK (ares):** En la TV: Developer Mode + Key Server ON. En el panel: Registrar → Passphrase → Verificar → subir `.ipk` → Apps instaladas (IPK).
+
+Requiere `npm install -g @webos-tools/cli`. Ver [`doc/connections/lg-webos.md`](doc/connections/lg-webos.md).
 
 ### Android TV
 

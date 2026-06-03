@@ -3,8 +3,9 @@
 <div class="card">
     <h1>📺 LG webOS</h1>
     <p class="hint">
-        <strong>Importante:</strong> LG no usa APK de Android. Las apps son webOS (IDs como <code>youtube.leanback.v4</code>).
-        Instalar/desinstalar paquetes .ipk requiere LG Content Store o herramientas de desarrollador (ares-cli), no este panel.
+        <strong>lgtv:</strong> URLs, apps del sistema, encender/apagar.
+        <strong>ares:</strong> instalar .ipk (Developer Mode). Requiere <code>npm install -g @webos-tools/cli</code>
+        {% if tools.ares_ok %} — ares detectado{% else %} — <span style="color:#e94560">ares no detectado</span>{% endif %}.
     </p>
     <button class="btn btn-success" onclick="scanLG()">🔍 Escanear red</button>
     <input type="text" id="lg-name" placeholder="Nombre">
@@ -16,23 +17,57 @@
     {% for tv in tvs %}
     <div class="card">
         <h3>{{ tv.name }}</h3>
-        <p>IP: <code>{{ tv.ip }}</code>{% if tv.lgtv_alias %} · Alias: <code>{{ tv.lgtv_alias }}</code>{% endif %}</p>
+        <p>IP: <code>{{ tv.ip }}</code> · lgtv: <code>{{ tv.lgtv_alias or '—' }}</code></p>
+        <p>ares: <code>{{ tv.ares_device or '—' }}</code>
+            {% if tv.ares_linked %}<span class="status-online"> vinculada</span>{% else %}<span class="status-offline"> sin vincular</span>{% endif %}
+        </p>
 
-        <button class="btn btn-secondary" onclick="authLG('{{ tv.ip }}')">🔐 Emparejar</button>
-        <button class="btn btn-secondary" onclick="openLgAppsModal('{{ tv.ip }}')">📋 Menú de apps</button>
+        <p><strong>Control remoto (lgtv)</strong></p>
+        <button class="btn btn-secondary" onclick="authLG('{{ tv.ip }}')">🔐 Emparejar lgtv</button>
+        <button class="btn btn-secondary" onclick="openLgAppsModal('{{ tv.ip }}')">📋 Apps del sistema</button>
         <button class="btn btn-success" onclick="quickUrlLG('{{ tv.ip }}', 'https://youtube.com')">▶ YouTube web</button>
-        <button class="btn" onclick="openUrlLG('{{ tv.ip }}')">🌐 Abrir URL</button>
+        <button class="btn" onclick="openUrlLG('{{ tv.ip }}')">🌐 URL</button>
         <button class="btn btn-danger" onclick="powerLG('{{ tv.ip }}', 'off')">⏻ Apagar</button>
         <button class="btn btn-success" onclick="powerLG('{{ tv.ip }}', 'on')">⏻ Encender</button>
-        <button class="btn btn-danger" onclick="removeLG('{{ tv.ip }}')">🗑️ Quitar</button>
 
         <div id="url-form-{{ tv.ip }}" style="display:none; margin-top:0.5rem;">
             <input type="text" id="url-input-{{ tv.ip }}" value="https://youtube.com">
             <button class="btn btn-success" onclick="sendUrlLG('{{ tv.ip }}')">✓</button>
         </div>
+
+        <hr style="border-color:#0f3460; margin:1rem 0;">
+
+        <p><strong>Developer Mode / IPK (ares)</strong></p>
+        <p class="hint">TV: Developer Mode ON → reiniciar → Key Server ON → passphrase en pantalla.</p>
+
+        <div class="form-group">
+            <label>Nombre ares (-d)</label>
+            <input type="text" id="ares-device-{{ tv.ip }}" value="{{ tv.ares_device or '' }}" placeholder="lgtv_1">
+            <label>Puerto</label>
+            <input type="number" id="ares-port-{{ tv.ip }}" value="{{ tv.ares_port or 9922 }}" style="width:100px;">
+            <label>Usuario SSH</label>
+            <input type="text" id="ares-user-{{ tv.ip }}" value="{{ tv.ares_user or 'developer' }}">
+            <button class="btn btn-secondary" onclick="saveAresConfig('{{ tv.ip }}')">💾 Guardar config</button>
+            <button class="btn" onclick="aresSetup('{{ tv.ip }}')">1️⃣ Registrar en ares</button>
+        </div>
+
+        <div class="form-group">
+            <label>Passphrase (la muestra la TV)</label>
+            <input type="text" id="ares-pass-{{ tv.ip }}" placeholder="pegar passphrase">
+            <button class="btn btn-secondary" onclick="aresGetkey('{{ tv.ip }}')">2️⃣ Vincular (getkey)</button>
+            <button class="btn btn-success" onclick="aresVerify('{{ tv.ip }}')">3️⃣ Verificar</button>
+        </div>
+
+        <div class="form-group">
+            <input type="file" id="ipk-file-{{ tv.ip }}" accept=".ipk">
+            <button class="btn btn-success" onclick="installIpk('{{ tv.ip }}')">📦 Instalar IPK</button>
+            <button class="btn btn-secondary" onclick="openAresAppsModal('{{ tv.ip }}')">📋 Apps instaladas (IPK)</button>
+        </div>
+
+        <button class="btn btn-danger" onclick="removeLG('{{ tv.ip }}')">🗑️ Quitar TV</button>
     </div>
     {% else %}
-    <div class="card"><p>Sin TVs LG. Escanea o agrega desde <a href="/">inicio</a>.</p></div>
+    <div class="card"><p>Sin TVs LG. <a href="/">Agregar</a> o escanear red.</p></div>
     {% endfor %}
 </div>
 
@@ -40,20 +75,26 @@
     <div class="modal">
         <div class="modal-header">
             <h3 id="lg-apps-modal-title">Apps LG</h3>
-            <button class="btn btn-secondary btn-sm" onclick="closeLgAppsModal()">✕ Cerrar</button>
+            <button class="btn btn-secondary btn-sm" onclick="closeLgAppsModal()">✕</button>
         </div>
-        <div class="modal-body" id="lg-apps-modal-body">
-            <p class="hint">Cargando...</p>
+        <div class="modal-body" id="lg-apps-modal-body"></div>
+    </div>
+</div>
+
+<div id="lg-ares-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="lg-ares-modal-title">Apps instaladas (IPK)</h3>
+            <button class="btn btn-secondary btn-sm" onclick="closeAresAppsModal()">✕</button>
         </div>
+        <div class="modal-body" id="lg-ares-modal-body"></div>
     </div>
 </div>
 
 <script>
     async function scanLG() {
         const data = await apiCall('/api/lg/scan', { method: 'POST' });
-        if (data.result === 'ok' || data.count > 0) {
-            setTimeout(() => location.reload(), 800);
-        }
+        if (data.result === 'ok' || data.count > 0) setTimeout(() => location.reload(), 800);
     }
 
     async function addLG() {
@@ -65,7 +106,7 @@
     }
 
     async function authLG(ip) {
-        log('Empareja en la TV si aparece popup...');
+        log('Emparejando lgtv... Acepta popup en TV');
         await apiCall(`/api/lg/auth/${ip}`, { method: 'POST' });
         setTimeout(() => location.reload(), 500);
     }
@@ -73,77 +114,137 @@
     function openUrlLG(ip) {
         document.getElementById(`url-form-${ip}`).style.display = 'block';
     }
-
     async function sendUrlLG(ip) {
         const url = document.getElementById(`url-input-${ip}`).value;
         await apiCall('/api/lg/open-url', { method: 'POST', body: JSON.stringify({ ip, url }) });
     }
-
     async function quickUrlLG(ip, url) {
         await apiCall('/api/lg/open-url', { method: 'POST', body: JSON.stringify({ ip, url }) });
+    }
+
+    async function saveAresConfig(ip) {
+        await apiCall('/api/lg/ares/save-config', {
+            method: 'POST',
+            body: JSON.stringify({
+                ip,
+                ares_device: document.getElementById(`ares-device-${ip}`).value.trim(),
+                ares_port: parseInt(document.getElementById(`ares-port-${ip}`).value, 10) || 9922,
+                ares_user: document.getElementById(`ares-user-${ip}`).value.trim() || 'developer'
+            })
+        });
+    }
+
+    async function aresSetup(ip) {
+        await saveAresConfig(ip);
+        log('Registrando dispositivo en ares...');
+        await apiCall('/api/lg/ares/setup', { method: 'POST', body: JSON.stringify({ ip }) });
+    }
+
+    async function aresGetkey(ip) {
+        await saveAresConfig(ip);
+        const passphrase = document.getElementById(`ares-pass-${ip}`).value;
+        log('Vinculando con passphrase de la TV...');
+        await apiCall('/api/lg/ares/getkey', {
+            method: 'POST',
+            body: JSON.stringify({ ip, passphrase })
+        });
+    }
+
+    async function aresVerify(ip) {
+        log('Verificando vinculación...');
+        const data = await apiCall('/api/lg/ares/verify', { method: 'POST', body: JSON.stringify({ ip }) });
+        if (data.linked) setTimeout(() => location.reload(), 600);
+    }
+
+    async function installIpk(ip) {
+        const fi = document.getElementById(`ipk-file-${ip}`);
+        if (!fi.files.length) return alert('Selecciona un .ipk');
+        const fd = new FormData();
+        fd.append('ipk', fi.files[0]);
+        fd.append('ip', ip);
+        log('Instalando IPK (puede tardar)...');
+        await apiCall('/api/lg/ares/install-ipk', { method: 'POST', body: fd });
     }
 
     function closeLgAppsModal() {
         document.getElementById('lg-apps-modal').classList.remove('open');
     }
+    function closeAresAppsModal() {
+        document.getElementById('lg-ares-modal').classList.remove('open');
+    }
 
-    function renderLgAppsModal(ip, apps) {
+    function renderLgSystemApps(ip, apps) {
         const body = document.getElementById('lg-apps-modal-body');
         const visible = apps.filter(a => a.visible !== false);
-        if (!visible.length) {
-            body.innerHTML = '<p>No hay apps o error de conexión. Empareja la TV primero.</p>';
-            return;
-        }
-        body.innerHTML = visible.map(app => {
-            const rem = app.removable ? '<span class="hint"> (se puede quitar en TV)</span>' : '';
-            return `
+        body.innerHTML = visible.map(app => `
             <div class="pkg-item">
-                <span class="pkg-name"><strong>${app.title}</strong><br><code>${app.id}</code>${rem}</span>
-                <button type="button" class="btn btn-success btn-sm" data-lg-action="open" data-ip="${ip}" data-id="${app.id}">Abrir</button>
-                <button type="button" class="btn btn-secondary btn-sm" data-lg-action="close" data-ip="${ip}" data-id="${app.id}">Cerrar</button>
-            </div>`;
-        }).join('');
-
-        body.querySelectorAll('button[data-lg-action]').forEach(btn => {
+                <span class="pkg-name"><strong>${app.title}</strong><br><code>${app.id}</code></span>
+                <button type="button" class="btn btn-success btn-sm" data-action="open" data-ip="${ip}" data-id="${app.id}">Abrir</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-action="close" data-ip="${ip}" data-id="${app.id}">Cerrar</button>
+            </div>`).join('');
+        body.querySelectorAll('button[data-action]').forEach(btn => {
             btn.addEventListener('click', async () => {
-                const action = btn.dataset.lgAction;
-                const appId = btn.dataset.id;
-                const deviceIp = btn.dataset.ip;
-                const url = action === 'open' ? '/api/lg/open-app' : '/api/lg/close-app';
-                const key = action === 'open' ? 'app_id' : 'app_id';
-                log(`${action === 'open' ? 'Abriendo' : 'Cerrando'} ${appId}...`);
-                await apiCall(url, {
-                    method: 'POST',
-                    body: JSON.stringify({ ip: deviceIp, [key]: appId })
-                });
+                const url = btn.dataset.action === 'open' ? '/api/lg/open-app' : '/api/lg/close-app';
+                await apiCall(url, { method: 'POST', body: JSON.stringify({ ip: btn.dataset.ip, app_id: btn.dataset.id }) });
             });
         });
     }
 
     async function openLgAppsModal(ip) {
         document.getElementById('lg-apps-modal').classList.add('open');
-        document.getElementById('lg-apps-modal-title').textContent = `Apps LG — ${ip}`;
-        document.getElementById('lg-apps-modal-body').innerHTML = '<p class="hint">Leyendo apps de la TV (puede tardar unos segundos)...</p>';
-        const data = await apiCall('/api/lg/list-apps', {
-            method: 'POST',
-            body: JSON.stringify({ ip })
-        });
-        if (data.apps) {
-            renderLgAppsModal(ip, data.apps);
-        } else {
-            document.getElementById('lg-apps-modal-body').innerHTML =
-                `<p>${data.message || 'Error al listar apps'}</p>`;
-        }
+        document.getElementById('lg-apps-modal-title').textContent = `Apps del sistema — ${ip}`;
+        document.getElementById('lg-apps-modal-body').innerHTML = '<p class="hint">Cargando...</p>';
+        const data = await apiCall('/api/lg/list-apps', { method: 'POST', body: JSON.stringify({ ip }) });
+        if (data.apps) renderLgSystemApps(ip, data.apps);
+        else document.getElementById('lg-apps-modal-body').innerHTML = `<p>${data.message || 'Error'}</p>`;
     }
 
-    document.getElementById('lg-apps-modal').addEventListener('click', (e) => {
+    function renderAresApps(ip, packages) {
+        const body = document.getElementById('lg-ares-modal-body');
+        if (!packages.length) {
+            body.innerHTML = '<p>No hay apps IPK instaladas o no está vinculada la TV.</p>';
+            return;
+        }
+        body.innerHTML = packages.map(pkg => `
+            <div class="pkg-item">
+                <span class="pkg-name"><code>${pkg.id}</code></span>
+                <button type="button" class="btn btn-success btn-sm" data-ares="launch" data-ip="${ip}" data-id="${pkg.id}">Abrir</button>
+                <button type="button" class="btn btn-danger btn-sm" data-ares="remove" data-ip="${ip}" data-id="${pkg.id}">Desinstalar</button>
+            </div>`).join('');
+        body.querySelectorAll('button[data-ares]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.dataset.id;
+                const deviceIp = btn.dataset.ip;
+                if (btn.dataset.ares === 'launch') {
+                    await apiCall('/api/lg/ares/launch', { method: 'POST', body: JSON.stringify({ ip: deviceIp, package_id: id }) });
+                } else {
+                    if (!confirm(`¿Desinstalar ${id}?`)) return;
+                    await apiCall('/api/lg/ares/remove', { method: 'POST', body: JSON.stringify({ ip: deviceIp, package_id: id }) });
+                    openAresAppsModal(deviceIp);
+                }
+            });
+        });
+    }
+
+    async function openAresAppsModal(ip) {
+        document.getElementById('lg-ares-modal').classList.add('open');
+        document.getElementById('lg-ares-modal-title').textContent = `Apps IPK — ${ip}`;
+        document.getElementById('lg-ares-modal-body').innerHTML = '<p class="hint">Leyendo apps instaladas...</p>';
+        const data = await apiCall('/api/lg/ares/list-installed', { method: 'POST', body: JSON.stringify({ ip }) });
+        if (data.packages) renderAresApps(ip, data.packages);
+        else document.getElementById('lg-ares-modal-body').innerHTML = `<p>${data.message || 'Error'}</p>`;
+    }
+
+    document.getElementById('lg-apps-modal').addEventListener('click', e => {
         if (e.target.id === 'lg-apps-modal') closeLgAppsModal();
+    });
+    document.getElementById('lg-ares-modal').addEventListener('click', e => {
+        if (e.target.id === 'lg-ares-modal') closeAresAppsModal();
     });
 
     async function powerLG(ip, action) {
         await apiCall('/api/lg/power', { method: 'POST', body: JSON.stringify({ ip, action }) });
     }
-
     async function removeLG(ip) {
         if (!confirm('¿Eliminar esta TV?')) return;
         await apiCall(`/api/lg/remove/${ip}`, { method: 'DELETE' });

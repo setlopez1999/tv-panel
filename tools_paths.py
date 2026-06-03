@@ -49,10 +49,32 @@ def get_scrcpy_path() -> str:
     return which or "scrcpy"
 
 
+def get_ares_path() -> str:
+    return shutil.which("ares") or "ares"
+
+
+def _ares_available() -> bool:
+    import subprocess
+
+    try:
+        r = subprocess.run(
+            [get_ares_path(), "-V"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        return r.returncode == 0
+    except Exception:
+        return False
+
+
 def tools_info() -> dict:
+    ares_ok = _ares_available()
     return {
         "scrcpy_dir": get_scrcpy_dir() or None,
         "adb": get_adb_path(),
         "scrcpy": get_scrcpy_path(),
         "adb_bundled": get_adb_path().lower().endswith(".exe"),
+        "ares": get_ares_path(),
+        "ares_ok": ares_ok,
     }

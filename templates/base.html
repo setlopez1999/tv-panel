@@ -144,6 +144,8 @@
             if (!data) return 'Sin respuesta';
             if (data.packages && data.count !== undefined) return data.message || `${data.count} apps`;
             if (data.apps && data.count !== undefined) return data.message || `${data.count} apps LG`;
+            if (data.packages && data.count !== undefined) return data.message || `${data.count} apps IPK`;
+            if (data.linked === true) return data.message || 'TV vinculada con ares';
             if (data.message) return data.message;
             if (data.success === true) return 'Operación correcta';
             if (data.success === false && data.error) return data.error;

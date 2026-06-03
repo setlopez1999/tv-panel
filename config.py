@@ -28,6 +28,13 @@ def _migrate(data: dict) -> dict:
         if "lgtv_alias" not in tv:
             tv["lgtv_alias"] = _lg_alias_from_name(tv.get("name", "lg"))
             changed = True
+        if "ares_device" not in tv:
+            tv["ares_device"] = _ares_device_from_name(tv.get("name", "lg"))
+            changed = True
+        for key, default in _LG_ARES_DEFAULTS.items():
+            if key not in tv:
+                tv[key] = default
+                changed = True
     if changed:
         save_devices(migrated)
     return migrated
@@ -82,17 +89,7 @@ def update_device(conn_type: str, ip: str, **fields):
 
 
 def add_lg_tv(name, ip, uuid=None):
-    alias = _lg_alias_from_name(name)
-    return add_device(
-        "lg",
-        {
-            "name": name,
-            "ip": ip,
-            "lgtv_alias": alias,
-            "uuid": uuid or "",
-            "status": "unknown",
-        },
-    )
+    return add_device("lg", lg_device_defaults(name, ip, uuid))
 
 
 def add_android_device(name, ip, device_code=None):
@@ -111,6 +108,38 @@ def add_android_device(name, ip, device_code=None):
 def _lg_alias_from_name(name: str) -> str:
     safe = re.sub(r"[^a-zA-Z0-9_]", "_", (name or "lg").lower())[:30]
     return f"tv_{safe}" if safe else "tv_lg"
+
+
+def _ares_device_from_name(name: str) -> str:
+    safe = re.sub(r"[^a-zA-Z0-9_]", "_", (name or "lg").lower())[:24]
+    return f"lgtv_{safe}" if safe else "lgtv_1"
+
+
+_LG_ARES_DEFAULTS = {
+    "ares_port": 9922,
+    "ares_user": "developer",
+    "ares_linked": False,
+    "cached_ares_packages": [],
+}
+
+
+def lg_device_defaults(name: str, ip: str, uuid: str = "") -> dict:
+    return {
+        "name": name,
+        "ip": ip,
+        "lgtv_alias": _lg_alias_from_name(name),
+        "uuid": uuid or "",
+        "status": "unknown",
+        "ares_device": _ares_device_from_name(name),
+        "ares_port": 9922,
+        "ares_user": "developer",
+        "ares_linked": False,
+        "cached_ares_packages": [],
+    }
+
+
+def update_lg_ares_config(ip: str, **fields):
+    update_device("lg", ip, **fields)
 
 
 def get_server_ip() -> str:

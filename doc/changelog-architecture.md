@@ -2,6 +2,24 @@
 
 Solo cambios **estructurales** (no bugs menores de UI).
 
+## 2026-06-01 — LG ares-cli (IPK / Developer Mode)
+
+**Qué cambió**
+
+- Nuevo [`modules/lg/ares_driver.py`](../modules/lg/ares_driver.py) para `@webos-tools/cli`.
+- API `/api/lg/ares/*`: setup, getkey, verify, install-ipk, list-installed, launch, remove.
+- `devices.json` LG: campos `ares_device`, `ares_port`, `ares_user`, `ares_linked`, `cached_ares_packages`.
+- UI asistente 3 pasos + modal apps IPK en `lg_devices.html` (separado de apps lgtv).
+- Health check incluye `ares`.
+
+**Por qué**
+
+- Instalar y gestionar paquetes `.ipk` en LG webOS (flujo Developer Mode del equipo).
+
+**Archivos tocados**
+
+- `modules/lg/ares_driver.py`, `routes/lg.py`, `config.py`, `templates/lg_devices.html`, `tools_paths.py`, `app.py`, `doc/connections/lg-webos.md`
+
 ## 2026-06-01 — Drivers + registry + blueprints
 
 **Qué cambió**
