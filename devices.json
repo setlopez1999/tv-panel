@@ -4,9 +4,17 @@
       {
         "name": "LG_0-0",
         "ip": "192.168.0.196",
-        "status": "unknown"
+        "status": "paired",
+        "lgtv_alias": "tv_lg_0_0"
       }
     ],
-    "android": []
+    "android": [
+      {
+        "name": "TV Android Sala",
+        "ip": "192.168.0.106",
+        "device_code": "192.168.0.106:5555",
+        "status": "unknown"
+      }
+    ]
   }
 }

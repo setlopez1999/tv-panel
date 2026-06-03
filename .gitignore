@@ -2,5 +2,6 @@ __pycache__/
 *.pyc
 uploads/
 tmp_screen_*.png
+# settings.json se versiona con ruta local del servidor
 .venv/
 venv/

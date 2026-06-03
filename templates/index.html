@@ -2,10 +2,29 @@
 {% block content %}
 <div class="card">
     <h1>🎯 TV Control Panel - NOC</h1>
-    <p>Panel local sin autenticación. Las acciones (ADB, lgtv, APK) se ejecutan en el <strong>PC servidor</strong>.</p>
-    <p><strong>IP del servidor en esta red:</strong> <code>{{ server_ip }}</code></p>
-    <p>Comparte con el equipo: <code>http://{{ server_ip }}:5000</code></p>
-    <p class="hint">Si entras por otra URL, usa la IP del servidor de arriba.</p>
+    <p>PC servidor: <code>{{ server_ip }}</code> · URL: <code>http://{{ server_ip }}:5000</code></p>
+    <p class="hint">ADB: <code>{{ tools.adb }}</code></p>
+</div>
+
+<div class="card">
+    <h2>➕ Agregar televisor</h2>
+    <div class="form-group">
+        <label>Tipo</label>
+        <select id="add-type" onchange="toggleAddType()">
+            <option value="lg">📺 LG webOS (lgtv)</option>
+            <option value="android">🤖 Android TV (ADB / scrcpy)</option>
+        </select>
+    </div>
+    <input type="text" id="add-name" placeholder="Nombre (ej: TV Sala)">
+    <input type="text" id="add-ip" placeholder="IP (ej: 192.168.0.50)">
+    <span id="android-code-wrap" style="display:none;">
+        <input type="text" id="add-code" placeholder="Código ADB (opcional: IP:5555)">
+    </span>
+    <button class="btn btn-success" onclick="addDevice()">Agregar</button>
+    <p class="hint" id="add-hint-lg">LG: luego Autenticar en la TV y abrir URLs/apps.</p>
+    <p class="hint" id="add-hint-android" style="display:none;">
+        Android: activa ADB por red en la TV → Conectar ADB → install APK / scrcpy.
+    </p>
 </div>
 
 <div class="grid">
@@ -21,4 +40,32 @@
     </div>
     {% endfor %}
 </div>
+
+<script>
+    function toggleAddType() {
+        const android = document.getElementById('add-type').value === 'android';
+        document.getElementById('android-code-wrap').style.display = android ? 'inline' : 'none';
+        document.getElementById('add-hint-lg').style.display = android ? 'none' : 'block';
+        document.getElementById('add-hint-android').style.display = android ? 'block' : 'none';
+    }
+
+    async function addDevice() {
+        const type = document.getElementById('add-type').value;
+        const name = document.getElementById('add-name').value.trim();
+        const ip = document.getElementById('add-ip').value.trim();
+        const code = document.getElementById('add-code').value.trim() || null;
+        if (!name || !ip) return alert('Nombre e IP obligatorios');
+
+        const body = { type, name, ip };
+        if (type === 'android') body.device_code = code;
+
+        const data = await apiCall('/api/devices/add', {
+            method: 'POST',
+            body: JSON.stringify(body)
+        });
+        if (data.success) {
+            window.location.href = type === 'lg' ? '/lg' : '/android';
+        }
+    }
+</script>
 {% endblock %}

@@ -4,6 +4,7 @@ from flask import Blueprint, Response, current_app, jsonify, render_template, re
 
 from config import add_android_device, find_device, legacy_view, load_devices, remove_device
 from modules.android.driver import AndroidDriver
+from tools_paths import tools_info
 
 android_bp = Blueprint("android", __name__)
 
@@ -17,7 +18,11 @@ def _android_for_ip(ip: str) -> AndroidDriver:
 @android_bp.route("/android")
 def android_page():
     devices = legacy_view(load_devices())
-    return render_template("android_devices.html", devices=devices["android_devices"])
+    return render_template(
+        "android_devices.html",
+        devices=devices["android_devices"],
+        tools=tools_info(),
+    )
 
 
 @android_bp.route("/api/android/add", methods=["POST"])
@@ -25,7 +30,7 @@ def android_add():
     data = request.json or {}
     success = add_android_device(data.get("name"), data.get("ip"), data.get("device_code"))
     return jsonify(
-        {"success": success, "message": "Dispositivo agregado" if success else "Ya existe esa IP"}
+        {"success": success, "message": "Android TV agregada" if success else "Ya existe esa IP"}
     )
 
 
@@ -33,22 +38,22 @@ def android_add():
 def android_connect(ip):
     if not find_device("android", ip):
         return jsonify({"success": False, "message": "Dispositivo no encontrado"})
-    result = _android_for_ip(ip).connect()
+    driver = _android_for_ip(ip)
+    result = driver.connect()
+    result["device_code"] = driver.device_code
     return jsonify(result)
 
 
 @android_bp.route("/api/android/open-url", methods=["POST"])
 def android_open_url():
     data = request.json or {}
-    result = _android_for_ip(data["ip"]).open_url(data["url"])
-    return jsonify(result)
+    return jsonify(_android_for_ip(data["ip"]).open_url(data["url"]))
 
 
 @android_bp.route("/api/android/open-app", methods=["POST"])
 def android_open_app():
     data = request.json or {}
-    result = _android_for_ip(data["ip"]).open_app(data["package"])
-    return jsonify(result)
+    return jsonify(_android_for_ip(data["ip"]).open_app(data["package"]))
 
 
 @android_bp.route("/api/android/install-apk", methods=["POST"])
@@ -69,10 +74,54 @@ def android_install_apk():
     return jsonify(result)
 
 
+@android_bp.route("/api/android/list-packages", methods=["POST"])
+def android_list_packages():
+    data = request.json or {}
+    return jsonify(_android_for_ip(data["ip"]).list_packages())
+
+
+@android_bp.route("/api/android/uninstall", methods=["POST"])
+def android_uninstall():
+    data = request.json or {}
+    return jsonify(_android_for_ip(data["ip"]).uninstall(data["package"]))
+
+
+@android_bp.route("/api/android/keyevent", methods=["POST"])
+def android_keyevent():
+    data = request.json or {}
+    return jsonify(_android_for_ip(data["ip"]).keyevent(int(data["key"])))
+
+
+@android_bp.route("/api/android/input-text", methods=["POST"])
+def android_input_text():
+    data = request.json or {}
+    return jsonify(_android_for_ip(data["ip"]).input_text(data.get("text", "")))
+
+
+@android_bp.route("/api/android/push-file", methods=["POST"])
+def android_push_file():
+    if "file" not in request.files:
+        return jsonify({"success": False, "message": "No se envió archivo"})
+    f = request.files["file"]
+    ip = request.form.get("ip")
+    remote = request.form.get("remote_path", "/sdcard/Download/")
+    filepath = os.path.join(current_app.config["UPLOAD_FOLDER"], f.filename)
+    f.save(filepath)
+    result = _android_for_ip(ip).push_file(filepath, remote)
+    os.remove(filepath)
+    return jsonify(result)
+
+
+@android_bp.route("/api/android/reboot", methods=["POST"])
+def android_reboot():
+    data = request.json or {}
+    power_off = data.get("power_off", False)
+    return jsonify(_android_for_ip(data["ip"]).reboot(power_off=power_off))
+
+
 @android_bp.route("/api/android/scrcpy/<ip>", methods=["POST"])
 def android_scrcpy(ip):
-    result = _android_for_ip(ip).start_scrcpy(on_host=True)
-    return jsonify(result)
+    return jsonify(_android_for_ip(ip).start_scrcpy(on_host=True))
 
 
 @android_bp.route("/api/android/launcher/<ip>")

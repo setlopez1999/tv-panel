@@ -16,7 +16,7 @@ python app.py
 
 La consola muestra la URL, ej: `http://192.168.0.53:5000`. Compártela con el equipo (misma red).
 
-Requisitos en PATH: `lgtv`, `adb`, `scrcpy` (Android). Comprueba con `GET /api/health`.
+`lgtv` en PATH (LG). Android usa **adb/scrcpy** de `settings.json` (por defecto carpeta scrcpy-win64). Comprueba: `GET /api/health`.
 
 ## Subir cambios
 
@@ -39,12 +39,11 @@ Si falla, prueba en terminal: `lgtv scan` y `lgtv --ssl openBrowserAt https://yo
 
 ### Android TV
 
-1. En la TV: activa **ADB over network** (puerto 5555).
-2. Abre **Android TV** en el panel → agrega **IP** y código **`IP:5555`**.
-3. **Conectar ADB** → **▶ YouTube** o **Instalar APK**.
-4. **Ver pantalla**: screenshot en el navegador, o **Abrir en mi PC (.cmd)** si tienes adb/scrcpy instalados.
+1. En la TV: **ADB over network** ON.
+2. En el **inicio** del panel: tipo **Android TV**, nombre + IP → Agregar.
+3. **Android TV** → **Conectar ADB** → APK / scrcpy / Home / Atrás / volumen / etc.
 
-Si falla: `adb connect 192.168.x.x:5555` en el PC servidor.
+Código dispositivo = `IP:5555` (como `adb devices`). Edita ruta tools en `settings.json` si cambias de PC.
 
 ## Seguridad
 

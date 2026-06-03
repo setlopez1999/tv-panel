@@ -2,8 +2,8 @@
 
 ## Herramientas
 
-- `adb` — Android Debug Bridge
-- `scrcpy` — espejo de pantalla (opcional)
+- `adb` y `scrcpy` — ruta en [`settings.json`](../../settings.json) (`scrcpy_dir`), por defecto bundle scrcpy-win64 en Downloads.
+- Si no hay bundle, usa PATH del sistema.
 
 ## Prerrequisitos en la TV
 
