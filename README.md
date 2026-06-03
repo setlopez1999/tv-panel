@@ -41,9 +41,13 @@ Requiere `npm install -g @webos-tools/cli`. Ver [`doc/connections/lg-webos.md`](
 
 1. En la TV: **ADB over network** ON.
 2. En el **inicio** del panel: tipo **Android TV**, nombre + IP → Agregar.
-3. **Android TV** → **Conectar ADB** → APK / scrcpy / Home / Atrás / volumen / etc.
+3. **Android TV** → **Conectar ADB** → APK / Home / volumen / etc.
 
-Código dispositivo = `IP:5555` (como `adb devices`). Edita ruta tools en `settings.json` si cambias de PC.
+**scrcpy:** en cada TV, **Descargar .exe (ver TV)** → doble clic en tu PC (sin descomprimir). El servidor genera el instalador desde `data/scrcpy`. Alternativa: ZIP.
+
+Configura `settings.json` → `scrcpy_dir` en el servidor. Comprueba: `GET /api/health`.
+
+Código dispositivo = `IP:5555` (como `adb devices`).
 
 ## Seguridad
 

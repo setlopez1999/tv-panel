@@ -35,7 +35,7 @@ scrcpy -s 192.168.0.50:5555
 | Instalar APK | `adb -s <code> install -r <apk>` |
 | Screenshot | `screencap` + `pull` → imagen en navegador |
 | scrcpy (servidor) | `scrcpy -s <code>` en PC anfitrión |
-| Abrir en mi PC | Descarga `.cmd` con connect + scrcpy |
+| Ver TV en mi PC | Descarga `.exe` (doble clic) o ZIP alternativo |
 
 ## Campos en `devices.json`
 
@@ -50,6 +50,8 @@ scrcpy -s 192.168.0.50:5555
 
 ## Troubleshooting
 
-- **unauthorized**: aceptar depuración en la TV.
+- **unauthorized**: cada PC tiene su propia clave ADB. Si no sale popup: en la TV **Revocar autorizaciones de depuración USB**, apagar/encender ADB por red, luego en `INICIAR_TV.cmd` pulsar **V** (forzar) y mirar la TV.
+- **unauthorized sin popup**: a veces la TV solo muestra el diálogo tras `adb kill-server` + reconectar (tecla **V** en el `.cmd`).
 - **offline**: pulsar Conectar ADB; revisar firewall y misma red.
-- **scrcpy no visible en otro PC**: usar Screenshot o el `.cmd` en el PC del operador.
+- **scrcpy en otra PC**: «Descargar .exe (ver TV)» → doble clic. Windows puede mostrar aviso de SmartScreen → «Más información» → «Ejecutar». La primera descarga tarda ~30 s (el servidor construye el .exe).
+- **ZIP alternativo**: descomprimir y ejecutar `Ver_TV_….cmd` si el .exe no funciona.

@@ -6,7 +6,17 @@ from werkzeug.utils import secure_filename
 
 from config import add_android_device, find_device, legacy_view, load_devices, remove_device, update_device
 from modules.android.driver import AndroidDriver
-from tools_paths import tools_info
+from modules.android.scrcpy_packaging import (
+    CMD_NAME,
+    TOOLS_DIR,
+    _safe_filename,
+    build_kit_exe_cached,
+    build_zip_bytes,
+    cleanup_staging,
+    kit_readme,
+    stage_scrcpy_kit,
+)
+from tools_paths import ensure_scrcpy_data_bundle, tools_info
 
 android_bp = Blueprint("android", __name__)
 
@@ -153,12 +163,93 @@ def android_launcher(ip):
     )
 
 
+def _scrcpy_kit_context(ip: str):
+    dev = find_device("android", ip)
+    if not dev:
+        return None, jsonify({"success": False, "message": "Dispositivo no encontrado"}), 404
+    bundle_dir = ensure_scrcpy_data_bundle()
+    if not os.path.isfile(os.path.join(bundle_dir, "scrcpy.exe")):
+        return None, jsonify({
+            "success": False,
+            "message": "No hay scrcpy en el servidor. Copia scrcpy-win64 en data/scrcpy o configura scrcpy_dir.",
+        }), 503
+    driver = AndroidDriver(ip, dev.get("device_code"))
+    safe = _safe_filename(dev.get("name") or "android")
+    return (driver, bundle_dir, safe, CMD_NAME), None, None
+
+
+@android_bp.route("/api/android/scrcpy-exe/<ip>", methods=["GET"])
+def android_scrcpy_exe(ip):
+    """Un solo .exe: extrae scrcpy y abre la TV (doble clic, sin descomprimir ZIP)."""
+    ctx, err_resp, code = _scrcpy_kit_context(ip)
+    if err_resp:
+        return err_resp, code
+    driver, bundle_dir, safe, cmd_name = ctx
+    readme = kit_readme(cmd_name, driver.device_code, exe_mode=True)
+    cache_dir = os.path.join(current_app.config["UPLOAD_FOLDER"], "scrcpy_cache")
+    os.makedirs(cache_dir, exist_ok=True)
+    cache_exe = os.path.join(cache_dir, f"TV_{safe}_{ip.replace('.', '-')}_v4.exe")
+    ok, msg = build_kit_exe_cached(
+        bundle_dir,
+        cache_exe,
+        cmd_name,
+        driver.launcher_cmd_content(tools_subdir=TOOLS_DIR),
+        readme,
+    )
+    if not ok:
+        return jsonify({"success": False, "message": msg}), 503
+    return send_file(
+        cache_exe,
+        mimetype="application/octet-stream",
+        as_attachment=True,
+        download_name=f"Ver_TV_{safe}.exe",
+    )
+
+
+@android_bp.route("/api/android/scrcpy-kit/<ip>", methods=["GET"])
+def android_scrcpy_kit(ip):
+    """ZIP alternativo (descomprimir + .cmd)."""
+    ctx, err_resp, code = _scrcpy_kit_context(ip)
+    if err_resp:
+        return err_resp, code
+    driver, bundle_dir, safe, cmd_name = ctx
+    readme = kit_readme(cmd_name, driver.device_code, exe_mode=False)
+    staging = stage_scrcpy_kit(
+        bundle_dir,
+        cmd_name,
+        driver.launcher_cmd_content(tools_subdir=TOOLS_DIR),
+        readme,
+    )
+    try:
+        buf = build_zip_bytes(staging)
+    finally:
+        cleanup_staging(staging)
+    return send_file(
+        buf,
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name=f"scrcpy_tv_{safe}.zip",
+    )
+
+
 @android_bp.route("/api/android/screenshot/<ip>", methods=["GET"])
 def android_screenshot(ip):
-    img_path = _android_for_ip(ip).get_screenshot()
-    if os.path.isfile(img_path) and os.path.getsize(img_path) > 500:
+    driver = _android_for_ip(ip)
+    driver.connect()
+    img_path = driver.get_screenshot()
+    if (
+        os.path.isfile(img_path)
+        and os.path.getsize(img_path) > 500
+        and AndroidDriver._is_valid_png(img_path)
+    ):
         return send_file(img_path, mimetype="image/png")
-    return jsonify({"success": False, "message": "No se pudo capturar. Conecta ADB y autoriza en la TV."}), 500
+    detail = ""
+    if os.path.isfile(img_path):
+        detail = f" (archivo {os.path.getsize(img_path)} bytes, no es PNG válido)"
+    return jsonify({
+        "success": False,
+        "message": "No se pudo capturar. Conecta ADB, autoriza en la TV y pulsa de nuevo." + detail,
+    }), 500
 
 
 @android_bp.route("/api/android/remove/<ip>", methods=["DELETE"])

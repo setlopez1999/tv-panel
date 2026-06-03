@@ -1,7 +1,10 @@
 __pycache__/
 *.pyc
 uploads/
+uploads/scrcpy_cache/
 tmp_screen_*.png
+data/scrcpy/*
+!data/scrcpy/README.txt
 # settings.json se versiona con ruta local del servidor
 .venv/
 venv/

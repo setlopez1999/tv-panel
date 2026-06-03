@@ -2,10 +2,23 @@
 {% block content %}
 <div class="card">
     <h1>🤖 Android TV (ADB)</h1>
-    <p class="hint">ADB: <code>{{ tools.adb }}</code></p>
+    <p class="hint">ADB: <code>{{ tools.adb }}</code>
+        · Kit scrcpy en servidor: {% if tools.scrcpy_data_ready %}✅ listo{% else %}⚠️ se copiará al primer descarga{% endif %}
+        (<code>data/scrcpy</code>)</p>
     <button class="btn btn-secondary" onclick="listAdbDevices()">📋 adb devices</button>
     <button class="btn btn-secondary" onclick="location.href='/'">➕ Agregar desde inicio</button>
-    <p class="hint">Si dice «failed to authenticate»: en la TV acepta «Permitir depuración USB» y vuelve a Conectar.</p>
+    <p class="hint">Si «unauthorized» y no sale popup en la TV: Opciones desarrollador → <strong>Revocar autorizaciones</strong> → reinicia ADB por red. En el ZIP pulsa <strong>V</strong> luego acepta en la TV.</p>
+    <p class="hint"><strong>Ver TV en tu PC:</strong> descarga <strong>.exe</strong> o <strong>ZIP</strong> (abajo). Si el antivirus bloquea el .exe, usa el ZIP — no es virus, es falso positivo (adb + empaquetado sin firma).</p>
+    <details class="card" style="margin-top:0.5rem; padding:0.75rem; background:#16213e;">
+        <summary style="cursor:pointer;">🛡️ Antivirus bloquea el .exe — qué hacer (30 s)</summary>
+        <ol style="margin:0.5rem 0 0 1.2rem; line-height:1.6;">
+            <li><strong>Opción rápida:</strong> usa <strong>ZIP</strong> → <em>Extraer todo</em> → doble clic en <code>INICIAR_TV.cmd</code> (al lado de la carpeta <code>tools</code>).</li>
+            <li><strong>SmartScreen:</strong> «Más información» → «Ejecutar de todos modos».</li>
+            <li><strong>Defender lo borró:</strong> Seguridad de Windows → Protección → Historial → Restaurar → «Permitir».</li>
+            <li><strong>Exclusión (IT):</strong> Exclusiones → carpeta donde guardas el .exe o el ZIP descomprimido.</li>
+        </ol>
+        <p class="hint" style="margin-top:0.5rem;">Contenido: scrcpy + adb oficiales + script del panel. Sin keyloggers ni backdoors. El .exe lo genera vuestro servidor con IExpress (Windows).</p>
+    </details>
 </div>
 
 <div class="grid">
@@ -15,9 +28,10 @@
         <p>IP: <code>{{ device.ip }}</code> · Código: <code>{{ device.device_code }}</code></p>
 
         <button class="btn btn-secondary" onclick="connectAndroid('{{ device.ip }}')">🔗 Conectar ADB</button>
-        <button class="btn btn-success" onclick="startScrcpy('{{ device.ip }}')">📺 scrcpy</button>
+        <a class="btn btn-success" href="/api/android/scrcpy-exe/{{ device.ip }}" title="Doble clic; si antivirus bloquea, usa ZIP">📥 .exe (1 clic)</a>
+        <a class="btn btn-success" href="/api/android/scrcpy-kit/{{ device.ip }}" title="Extraer + INICIAR_TV.cmd — suele pasar el antivirus">📦 ZIP (sin bloqueos)</a>
+        <button class="btn btn-secondary btn-sm" onclick="startScrcpy('{{ device.ip }}')" title="Solo en el monitor del PC servidor">📺 servidor</button>
         <button class="btn btn-secondary" onclick="takeScreenshot('{{ device.ip }}')">📸 Pantalla web</button>
-        <a class="btn btn-secondary" href="/api/android/launcher/{{ device.ip }}">💻 .cmd scrcpy</a>
 
         <p style="margin-top:0.8rem;"><strong>Apps</strong></p>
         <button class="btn btn-secondary" onclick="openPackagesModal('{{ device.ip }}')">📋 Menú de apps</button>
@@ -46,7 +60,9 @@
             <button class="btn btn-success" onclick="installApk('{{ device.ip }}')">Instalar APK</button>
         </div>
 
-        <div id="screenshot-{{ device.ip }}" style="margin-top:1rem;"></div>
+        <div id="screenshot-{{ device.ip }}" class="screenshot-box" style="margin-top:1rem; min-height:80px; background:#0a0a0a; border:1px dashed #444; border-radius:8px; padding:0.5rem;">
+            <span class="hint">La captura aparece aquí ↓</span>
+        </div>
         <button class="btn btn-danger" style="margin-top:0.5rem;" onclick="removeAndroid('{{ device.ip }}')">🗑️ Quitar</button>
     </div>
     {% else %}
@@ -165,21 +181,30 @@
     }
 
     async function startScrcpy(ip) {
-        await apiCall(`/api/android/scrcpy/${ip}`, { method: 'POST' });
+        await apiCall(`/api/android/scrcpy/${ip}`, { method: 'POST' }, 'scrcpy en PC servidor');
     }
 
     async function takeScreenshot(ip) {
-        log('Capturando pantalla...');
+        const box = document.getElementById(`screenshot-${ip}`);
+        log('Capturando pantalla (ADB)…', 'wait');
+        box.innerHTML = '<span class="hint">Capturando…</span>';
         const res = await fetch(`/api/android/screenshot/${ip}?t=${Date.now()}`);
         const ct = res.headers.get('content-type') || '';
         if (res.ok && ct.includes('image')) {
             const blob = await res.blob();
-            document.getElementById(`screenshot-${ip}`).innerHTML =
-                `<img src="${URL.createObjectURL(blob)}" alt="TV" style="max-width:100%; border-radius:8px; border:1px solid #333;">`;
-            log('Pantalla mostrada');
+            if (blob.size < 500) {
+                log('Imagen vacía — conecta ADB primero', 'err');
+                box.innerHTML = '<span class="hint">Sin imagen. Pulsa Conectar ADB.</span>';
+                return;
+            }
+            const url = URL.createObjectURL(blob);
+            box.innerHTML = `<img src="${url}" alt="TV" style="max-width:100%; border-radius:8px; border:1px solid #333;">`;
+            log('Pantalla mostrada (' + Math.round(blob.size / 1024) + ' KB)', 'ok');
         } else {
-            const err = await res.json().catch(() => ({ message: 'Error al capturar' }));
-            log(formatApiMessage(err));
+            let msg = 'Error al capturar';
+            try { msg = formatApiMessage(await res.json()); } catch (_) { msg = 'HTTP ' + res.status; }
+            log(msg, 'err');
+            box.innerHTML = `<span class="hint">${msg}</span>`;
         }
     }
 

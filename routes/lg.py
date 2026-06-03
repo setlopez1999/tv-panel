@@ -179,7 +179,10 @@ def lg_ares_getkey():
         return err
     result = ares.get_key(data.get("passphrase", ""))
     if result.get("success"):
-        update_lg_ares_config(ip, ares_linked=True)
+        verify = ares.device_info()
+        if verify.get("linked"):
+            update_lg_ares_config(ip, ares_linked=True)
+            result["message"] = "TV vinculada. Ya puedes instalar IPK."
     return jsonify(result)
 
 

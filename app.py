@@ -3,7 +3,7 @@ import subprocess
 
 from flask import Flask, jsonify, render_template
 
-from config import add_android_device, add_lg_tv, get_server_ip, legacy_view, load_devices
+from config import add_android_device, add_lg_tv, get_server_ip, legacy_view, load_devices, rename_device
 from modules.registry import list_connection_types
 from routes import android_bp, lg_bp
 from tools_paths import get_adb_path, get_ares_path, get_scrcpy_path, tools_info
@@ -52,6 +52,23 @@ def add_device_unified():
         return jsonify({"success": False, "message": "Tipo inválido. Usa lg o android"})
 
     return jsonify({"success": ok, "message": msg, "type": dtype})
+
+
+@app.route("/api/devices/rename", methods=["POST"])
+def rename_device_api():
+    data = request.json or {}
+    dtype = (data.get("type") or "").lower()
+    ip = (data.get("ip") or "").strip()
+    name = (data.get("name") or "").strip()
+    if dtype not in ("lg", "android") or not ip or not name:
+        return jsonify({"success": False, "message": "Tipo, IP y nombre son obligatorios"})
+    ok = rename_device(dtype, ip, name)
+    return jsonify(
+        {
+            "success": ok,
+            "message": "Nombre actualizado" if ok else "Dispositivo no encontrado",
+        }
+    )
 
 
 @app.route("/api/health")

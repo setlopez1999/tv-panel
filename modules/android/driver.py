@@ -146,25 +146,50 @@ class AndroidDriver:
             args.append("-p")
         return self._run(args)
 
+    @staticmethod
+    def _is_valid_png(path: str) -> bool:
+        try:
+            with open(path, "rb") as f:
+                return f.read(8) == b"\x89PNG\r\n\x1a\n"
+        except OSError:
+            return False
+
+    @staticmethod
+    def _fix_png_crlf(path: str) -> None:
+        with open(path, "rb") as f:
+            data = f.read()
+        if not data.startswith(b"\x89PNG") and b"\r\n" in data:
+            data = data.replace(b"\r\r\n", b"\n").replace(b"\r\n", b"\n")
+            with open(path, "wb") as f:
+                f.write(data)
+
     def get_screenshot(self) -> str:
-        """Captura vía exec-out (evita rutas relativas y corrupción en Windows)."""
+        """Captura en TV → pull a disco (fiable en Android TV; exec-out a veces devuelve basura)."""
         local_tmp = os.path.abspath(f"tmp_screen_{self.ip.replace('.', '_')}.png")
+        tmp_remote = "/sdcard/tv_panel_screen.png"
+        self._run(self._adb_device("shell", "screencap", "-p", tmp_remote), timeout=45)
+        pull = self._run(self._adb_device("pull", tmp_remote, local_tmp), timeout=60)
+        if os.path.isfile(local_tmp):
+            self._fix_png_crlf(local_tmp)
+            if self._is_valid_png(local_tmp):
+                return local_tmp
+        # Último intento: exec-out solo si devuelve PNG real
         try:
             result = subprocess.run(
                 self._adb_device("exec-out", "screencap", "-p"),
                 capture_output=True,
                 timeout=30,
+                cwd=get_scrcpy_dir() or None,
             )
-            if result.returncode == 0 and result.stdout and len(result.stdout) > 100:
+            if result.returncode == 0 and result.stdout and result.stdout[:8] == b"\x89PNG\r\n\x1a\n":
                 with open(local_tmp, "wb") as f:
                     f.write(result.stdout)
+                self._fix_png_crlf(local_tmp)
                 return local_tmp
         except Exception:
             pass
-        # Fallback: pull clásico con ruta absoluta
-        tmp_remote = "/sdcard/tv_panel_screen.png"
-        self._run(self._adb_device("shell", "screencap", "-p", tmp_remote))
-        self._run(self._adb_device("pull", tmp_remote, local_tmp))
+        if not pull.get("success"):
+            return local_tmp
         return local_tmp
 
     def start_scrcpy(self, on_host: bool = True):
@@ -188,15 +213,105 @@ class AndroidDriver:
         except Exception as e:
             return {"success": False, "message": str(e)}
 
-    def launcher_cmd_content(self) -> str:
-        adb_q = f'"{self._adb_exe}"'
-        scrcpy_q = f'"{self._scrcpy_exe}"'
+    def launcher_cmd_content(self, tools_subdir: str = "tools") -> str:
+        """Launcher en raíz del ZIP; bucle de autorización ADB antes de scrcpy."""
+        code = self.device_code
+        sub = tools_subdir.replace("/", "\\").strip("\\") or "tools"
         return (
             "@echo off\n"
-            f"echo Conectando {self.device_code}...\n"
-            f"{adb_q} connect {self.device_code}\n"
-            f"{scrcpy_q} -s {self.device_code}\n"
+            "setlocal EnableExtensions\n"
+            "chcp 65001 >nul\n"
+            "cd /d \"%~dp0\"\n"
+            f"set \"DEVICE={code}\"\n"
+            f"set \"TOOLDIR=%~dp0{sub}\"\n"
+            "set \"ADB=%TOOLDIR%\\adb.exe\"\n"
+            "set \"SCR=%TOOLDIR%\\scrcpy.exe\"\n"
+            "if not exist \"%SCR%\" if exist \"%~dp0scrcpy.exe\" (\n"
+            "  set \"TOOLDIR=%~dp0\"\n"
+            "  set \"ADB=%~dp0adb.exe\"\n"
+            "  set \"SCR=%~dp0scrcpy.exe\"\n"
+            ")\n"
+            "if not exist \"%SCR%\" (\n"
+            "  echo No se encuentra scrcpy.exe en tools\\ ni en la raiz.\n"
+            "  echo Extrae el ZIP completo y ejecuta INICIAR_TV.cmd desde la raiz.\n"
+            "  pause\n"
+            "  exit /b 1\n"
+            ")\n"
+            "set \"STATUS_FILE=%TEMP%\\tv_panel_adb_%RANDOM%.txt\"\n"
+            "\n"
+            ":do_connect\n"
+            "echo.\n"
+            "echo Conectando %DEVICE% ...\n"
+            "\"%ADB%\" connect %DEVICE%\n"
+            "timeout /t 3 /nobreak >nul\n"
+            "goto check_device\n"
+            "\n"
+            ":force_reset_adb\n"
+            "echo.\n"
+            "echo Reiniciando ADB en esta PC y reconectando...\n"
+            "\"%ADB%\" disconnect %DEVICE% 2>nul\n"
+            "\"%ADB%\" kill-server 2>nul\n"
+            "timeout /t 2 /nobreak >nul\n"
+            "\"%ADB%\" start-server 2>nul\n"
+            "timeout /t 1 /nobreak >nul\n"
+            "goto do_connect\n"
+            "\n"
+            ":check_device\n"
+            "\"%ADB%\" devices > \"%STATUS_FILE%\"\n"
+            "echo.\n"
+            "echo --- adb devices ---\n"
+            "type \"%STATUS_FILE%\"\n"
+            "echo -------------------\n"
+            "findstr /C:\"%DEVICE%\" \"%STATUS_FILE%\" | findstr /I \"unauthorized\" >nul\n"
+            "if %errorlevel%==0 goto need_tv_auth\n"
+            "findstr /C:\"%DEVICE%\" \"%STATUS_FILE%\" | findstr /I \"offline\" >nul\n"
+            "if %errorlevel%==0 (\n"
+            "  echo Dispositivo offline. Reconectando...\n"
+            "  goto force_reset_adb\n"
+            ")\n"
+            "findstr /C:\"%DEVICE%\" \"%STATUS_FILE%\" | findstr /I \"device\" >nul\n"
+            "if %errorlevel%==0 goto launch_scrcpy\n"
+            "echo No aparece %DEVICE% en adb devices.\n"
+            "goto need_tv_auth\n"
+            "\n"
+            ":need_tv_auth\n"
+            "echo.\n"
+            "echo ============================================\n"
+            "echo   AUTORIZACION EN LA TV (esta PC nueva)\n"
+            "echo ============================================\n"
+            "echo   Debe salir popup: Permitir depuracion USB\n"
+            "echo.\n"
+            "echo   SI NO SALE EL POPUP, en la TV haz ESTO antes de V o R:\n"
+            "echo   1. Opciones de desarrollador\n"
+            "echo   2. REVOCAR autorizaciones de depuracion USB\n"
+            "echo   3. Apaga y enciende \"Depuracion ADB\" y \"ADB por red\"\n"
+            "echo   4. Mira la TV unos 10 segundos tras pulsar V\n"
+            "echo.\n"
+            "echo   V = Forzar reconexion (suele sacar el popup)\n"
+            "echo   R = Reintentar comprobacion\n"
+            "echo   C = Cancelar\n"
+            "echo ============================================\n"
+            "set \"OPC=\"\n"
+            "set /p OPC=\"Escribe V, R o C y Enter: \"\n"
+            "if /i \"%OPC%\"==\"C\" (\n"
+            "  echo Cancelado.\n"
+            "  del \"%STATUS_FILE%\" 2>nul\n"
+            "  exit /b 0\n"
+            ")\n"
+            "if /i \"%OPC%\"==\"V\" goto force_reset_adb\n"
+            "if /i \"%OPC%\"==\"R\" goto do_connect\n"
+            "echo Opcion no valida. Usa V, R o C.\n"
+            "goto need_tv_auth\n"
+            "\n"
+            ":launch_scrcpy\n"
+            "echo.\n"
+            "echo TV autorizada en esta PC. Abriendo scrcpy...\n"
+            "del \"%STATUS_FILE%\" 2>nul\n"
+            "cd /d \"%TOOLDIR%\"\n"
+            "\"%SCR%\" -s %DEVICE%\n"
+            "echo.\n"
             "pause\n"
+            "endlocal\n"
         )
 
     @staticmethod

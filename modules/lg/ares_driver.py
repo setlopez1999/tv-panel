@@ -3,6 +3,7 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 
 
 def get_ares_cmd(name: str) -> str:
@@ -106,13 +107,65 @@ class AresDriver:
         return result
 
     def get_key(self, passphrase: str):
+        """Passphrase = texto que muestra la app Developer Mode en la TV (Key Server ON)."""
         if not passphrase or not passphrase.strip():
-            return {"success": False, "message": "Escribe la passphrase que muestra la TV"}
-        return self._run(
-            [get_ares_cmd("ares-novacom"), "--getkey", "-d", self.device],
-            input_text=passphrase.strip() + "\n",
-            timeout=60,
-        )
+            return {
+                "success": False,
+                "message": "Escribe la passphrase que aparece en la pantalla de la TV",
+            }
+        phrase = passphrase.strip()
+        novacom = get_ares_cmd("ares-novacom")
+        # ares-novacom usa prompt interactivo; en Windows capture_output no recibe stdin bien.
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                suffix=".txt",
+                delete=False,
+                encoding="utf-8",
+            ) as tmp:
+                tmp.write(phrase + "\n")
+                tmp_path = tmp.name
+            try:
+                cmd = f'"{novacom}" --getkey -d {self.device} < "{tmp_path}"'
+                result = subprocess.run(
+                    cmd,
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=90,
+                )
+            finally:
+                try:
+                    os.remove(tmp_path)
+                except OSError:
+                    pass
+            out = (result.stdout or "") + (result.stderr or "")
+            ok = result.returncode == 0
+            if not ok and "success" in out.lower():
+                ok = True
+            if "input passphrase" in out.lower() and result.returncode != 0:
+                ok = False
+            key_path = os.path.expanduser(f"~/.ssh/{self.device}_webos")
+            if os.path.isfile(key_path):
+                ok = True
+            msg = (result.stderr or result.stdout or "").strip()
+            if ok:
+                msg = f"Clave SSH guardada. Si falla, borra {key_path} y repite."
+            elif "authentication" in msg.lower():
+                msg = (
+                    "No se pudo vincular. En la TV: Key Server ON y passphrase visible. "
+                    "Si ya intentaste antes, borra la carpeta .ssh con lgtv_*_webos y repite."
+                )
+            return {
+                "success": ok,
+                "message": msg[:500],
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+            }
+        except subprocess.TimeoutExpired:
+            return {"success": False, "message": "Tiempo agotado. ¿Key Server activo en la TV?"}
+        except Exception as e:
+            return {"success": False, "message": str(e)}
 
     def device_info(self):
         result = self._run(

@@ -142,6 +142,17 @@ def update_lg_ares_config(ip: str, **fields):
     update_device("lg", ip, **fields)
 
 
+def rename_device(conn_type: str, ip: str, new_name: str) -> bool:
+    """Cambia el nombre visible; la IP sigue siendo la clave."""
+    new_name = (new_name or "").strip()
+    if not new_name:
+        return False
+    if not find_device(conn_type, ip):
+        return False
+    update_device(conn_type, ip, name=new_name)
+    return True
+
+
 def get_server_ip() -> str:
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

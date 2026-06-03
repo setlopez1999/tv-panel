@@ -73,10 +73,25 @@
             border-radius: 5px;
             padding: 1rem;
             font-family: monospace;
-            max-height: 200px;
+            max-height: 220px;
             overflow-y: auto;
             margin-top: 1rem;
             white-space: pre-wrap;
+            font-size: 0.9rem;
+        }
+        .log-sticky {
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+            background: #1a1a2e;
+            padding-top: 0.5rem;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+        }
+        #status-line {
+            color: #16c79a;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            min-height: 1.2em;
         }
         h1, h2 { color: #e94560; margin-bottom: 1rem; }
         .form-group { margin-bottom: 1rem; }
@@ -132,29 +147,38 @@
         .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
     </style>
     <script>
-        function log(message) {
+        function log(message, type) {
             const box = document.getElementById('log-box');
+            const status = document.getElementById('status-line');
+            const prefix = type === 'ok' ? '✅ ' : type === 'err' ? '❌ ' : type === 'wait' ? '⏳ ' : '• ';
+            const line = `[${new Date().toLocaleTimeString()}] ${prefix}${message}`;
             if (box) {
-                box.textContent += `[${new Date().toLocaleTimeString()}] ${message}\n`;
+                box.textContent += line + '\n';
                 box.scrollTop = box.scrollHeight;
             }
+            if (status) {
+                status.textContent = line;
+                status.style.color = type === 'err' ? '#e94560' : type === 'ok' ? '#16c79a' : '#eee';
+            }
+            console.log(line);
         }
 
         function formatApiMessage(data) {
-            if (!data) return 'Sin respuesta';
-            if (data.packages && data.count !== undefined) return data.message || `${data.count} apps`;
-            if (data.apps && data.count !== undefined) return data.message || `${data.count} apps LG`;
-            if (data.packages && data.count !== undefined) return data.message || `${data.count} apps IPK`;
-            if (data.linked === true) return data.message || 'TV vinculada con ares';
-            if (data.message) return data.message;
-            if (data.success === true) return 'Operación correcta';
-            if (data.success === false && data.error) return data.error;
-            if (data.result === 'ok') return 'OK';
-            if (data.added !== undefined) return `Escaneo: ${data.added} TV(s) nuevas guardadas`;
-            return typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+            if (!data) return 'Sin respuesta del servidor';
+            let msg = data.message || data.error || '';
+            if (data.packages && data.count !== undefined) msg = data.message || `${data.count} apps IPK`;
+            else if (data.apps && data.count !== undefined) msg = data.message || `${data.count} apps LG`;
+            else if (data.linked === true) msg = data.message || 'TV vinculada con ares';
+            else if (!msg && data.success === true) msg = 'Operación correcta';
+            else if (!msg && data.result === 'ok') msg = 'OK';
+            else if (data.added !== undefined) msg = `Escaneo: ${data.added} TV(s) nuevas`;
+            else if (!msg && data.success === false) msg = 'Error (revisa detalle abajo)';
+            if (!msg) msg = JSON.stringify(data).slice(0, 400);
+            return String(msg).replace(/\s+/g, ' ').trim().slice(0, 350);
         }
 
-        async function apiCall(url, options = {}) {
+        async function apiCall(url, options = {}, label) {
+            if (label) log(label + '…', 'wait');
             const isForm = options.body instanceof FormData;
             const headers = isForm ? {} : { 'Content-Type': 'application/json' };
             try {
@@ -162,12 +186,16 @@
                 const ct = res.headers.get('content-type') || '';
                 if (ct.includes('application/json')) {
                     const data = await res.json();
-                    log(formatApiMessage(data));
+                    const msg = formatApiMessage(data);
+                    const ok = data.success !== false && res.ok && data.result !== 'error';
+                    log(msg, ok ? 'ok' : 'err');
                     return data;
                 }
-                return { success: res.ok, message: res.ok ? 'OK' : 'Error en la petición' };
+                const txt = res.ok ? 'OK' : 'Error HTTP ' + res.status;
+                log(txt, res.ok ? 'ok' : 'err');
+                return { success: res.ok, message: txt };
             } catch (e) {
-                log('Error: ' + e.message);
+                log('Error de red: ' + e.message, 'err');
                 return { success: false, message: e.message };
             }
         }
@@ -175,7 +203,7 @@
 </head>
 <body>
     <nav class="navbar">
-        <a href="/">🏠 Dashboard</a>
+        <a href="/">🏠 Inicio / Dispositivos</a>
         {% for ct in connection_types %}
         <a href="{{ ct.route }}">{{ ct.icon }} {{ ct.display_name }}</a>
         {% endfor %}
@@ -183,10 +211,11 @@
     <div class="container">
         {% block content %}{% endblock %}
     </div>
-    <div class="container">
+    <div class="container log-sticky">
         <div class="card">
-            <h3>📋 Log de operaciones</h3>
-            <div id="log-box" class="log-box">Listo para operaciones...</div>
+            <h3>📋 Log (siempre visible abajo)</h3>
+            <div id="status-line">Listo — pulsa un botón y verás el resultado aquí</div>
+            <div id="log-box" class="log-box">Listo para operaciones...\n</div>
         </div>
     </div>
 </body>

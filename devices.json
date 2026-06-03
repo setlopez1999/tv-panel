@@ -10,7 +10,969 @@
         "ares_user": "developer",
         "ares_linked": false,
         "cached_ares_packages": [],
-        "ares_device": "lgtv_lg_0_0"
+        "ares_device": "lgtv_1",
+        "cached_apps": [
+          {
+            "id": "com.webos.app.accessibility",
+            "title": "Accesibilidad",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.accessibility-overlay",
+            "title": "Accessibility Overlay",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.adhdmi1",
+            "title": "Ad Overlay App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.adhdmi2",
+            "title": "Ad Overlay App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.adhdmi3",
+            "title": "Ad Overlay App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.adhdmi4",
+            "title": "Ad Overlay App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.adoverlay",
+            "title": "Ad Overlay App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.adoverlayex",
+            "title": "Ad Overlay App extension",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.channeledit",
+            "title": "ADMINISTRADOR DE CANALES",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.affixtv.hosted",
+            "title": "AFFIX TV",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "airplay",
+            "title": "AirPlay",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "amazon.alexa.view",
+            "title": "Amazon Alexa",
+            "removable": false,
+            "visible": true
+          },
+          {
+            "id": "amazon.alexapr",
+            "title": "Amazon Alexa",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "america.tv.go",
+            "title": "América tvGO",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "com.webos.app.appcasting",
+            "title": "APP CASTING",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.apple.appletv",
+            "title": "Apple TV",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "com.webos.app.discovery",
+            "title": "Apps",
+            "removable": false,
+            "visible": true
+          },
+          {
+            "id": "com.webos.app.soundwizard",
+            "title": "Asistente de sonido personalizado",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.externalinput.av1",
+            "title": "AV",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.externalinput.scart",
+            "title": "AV1",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.externalinput.av2",
+            "title": "AV2",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.self-diagnosis",
+            "title": "Ayuda rápida",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.bantel.hosted",
+            "title": "Bantel TV",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "com.webos.app.beanbrowser",
+            "title": "BeanBrowser",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.service.billing.app",
+            "title": "Billing service launcher",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.btsurroundautotuning",
+            "title": "Bluetooth Surround Auto Tuning",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.homeconnect",
+            "title": "Centro de Hogar Inteligente",
+            "removable": false,
+            "visible": true
+          },
+          {
+            "id": "com.webos.app.assistant",
+            "title": "Chatbot Application",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.chromecast",
+            "title": "Chromecast built-in",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.chromecast-settings",
+            "title": "Chromecast built-in Settings",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "clarovideo.dla.1",
+            "title": "Claro Video",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "com.webos.app.cmp-client",
+            "title": "CMP App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.exampleapp.enyoapp.epg",
+            "title": "com.webos.exampleapp.enyoapp.epg",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.exampleapp.groupowner",
+            "title": "com.webos.exampleapp.groupowner",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.exampleapp.nav",
+            "title": "com.webos.exampleapp.nav",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.exampleapp.qmlapp.client.negative.one",
+            "title": "com.webos.exampleapp.qmlapp.client.negative.one",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.exampleapp.qmlapp.client.negative.two",
+            "title": "com.webos.exampleapp.qmlapp.client.negative.two",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.exampleapp.qmlapp.client.positive.one",
+            "title": "com.webos.exampleapp.qmlapp.client.positive.one",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.exampleapp.qmlapp.client.positive.two",
+            "title": "com.webos.exampleapp.qmlapp.client.positive.two",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.exampleapp.qmlapp.discover",
+            "title": "com.webos.exampleapp.qmlapp.discover",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.exampleapp.qmlapp.epg",
+            "title": "com.webos.exampleapp.qmlapp.epg",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.exampleapp.qmlapp.hbbtv",
+            "title": "com.webos.exampleapp.qmlapp.hbbtv",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.exampleapp.qmlapp.livetv",
+            "title": "com.webos.exampleapp.qmlapp.livetv",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.exampleapp.qmlapp.search",
+            "title": "com.webos.exampleapp.qmlapp.search",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.externalinput.component",
+            "title": "Componente",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.palm.app.settings",
+            "title": "Configuración",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.connectionwizard",
+            "title": "Configuración de Control Remoto Universal",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.weatherlocation",
+            "title": "Configuración de ubicación",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.crb",
+            "title": "Connected Red Button",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.remotecontrolguide",
+            "title": "Conocer el control remoto",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.helpandtips",
+            "title": "Consejos",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.overlaycontainer",
+            "title": "Container App for Commercial Overlay App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.overlaycontainerex",
+            "title": "Container App for Commercial Overlay App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.overlaycontainerhdmi1",
+            "title": "Container App for Commercial Overlay App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.overlaycontainerhdmi2",
+            "title": "Container App for Commercial Overlay App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.overlaycontainerhdmi3",
+            "title": "Container App for Commercial Overlay App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.overlaycontainerhdmi4",
+            "title": "Container App for Commercial Overlay App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.fooddelivery",
+            "title": "Container App for Food Delivery Overlay App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.fooddeliveryex",
+            "title": "Container App for Food Delivery Overlay App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.fooddeliveryhdmi1",
+            "title": "Container App for Food Delivery Overlay App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.fooddeliveryhdmi2",
+            "title": "Container App for Food Delivery Overlay App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.fooddeliveryhdmi3",
+            "title": "Container App for Food Delivery Overlay App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.fooddeliveryhdmi4",
+            "title": "Container App for Food Delivery Overlay App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.videoads",
+            "title": "Container App for video ads App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "shortcutcopilot",
+            "title": "Copilot",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "com.webos.app.membership",
+            "title": "Cuenta LG",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.familycare",
+            "title": "Cuidados de uso",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.camera",
+            "title": "Cámara",
+            "removable": false,
+            "visible": true
+          },
+          {
+            "id": "com.webos.app.dafccalibration",
+            "title": "DAFC Calibration",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.dangbei-overlay",
+            "title": "Dangbei Assistant",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.store-demo",
+            "title": "Demo Tienda",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.sportsteamsettings",
+            "title": "Deportes",
+            "removable": false,
+            "visible": true
+          },
+          {
+            "id": "com.palmdts.devmode",
+            "title": "Developer Mode",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "com.directvgo.webostv-rt",
+            "title": "DGO",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "com.disney.disneyplus-prod",
+            "title": "Disney+",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "com.webos.app.dp1",
+            "title": "DisplayPort1",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.dp2",
+            "title": "DisplayPort2",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.dvrpopup",
+            "title": "DvrPopup",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.firstuse-overlay",
+            "title": "First Use Overlay",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.oobe",
+            "title": "First Use-OOBE",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.aiplatform",
+            "title": "Flutter aiplatform app",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.aiplatformsupport",
+            "title": "Flutter aiplatform_support app",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.similarlist",
+            "title": "Flutter similarlist app",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.svcdiagnostics",
+            "title": "Flutter svcdiagnostics app",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.ftmsinfo",
+            "title": "FTMS Info",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.gameoptimizer",
+            "title": "GameOptimizer",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.recordings",
+            "title": "Grabaciones",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.livemenu",
+            "title": "Guide",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.tvuserguide",
+            "title": "Guía del usuario",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.hdmi1",
+            "title": "HDMI1",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.hdmi2",
+            "title": "HDMI2",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.hdmi3",
+            "title": "HDMI3",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.hdmi4",
+            "title": "HDMI4",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.home",
+            "title": "Home",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.service.homeconnect.app",
+            "title": "Home Dashboard service launcher",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.inputcommon",
+            "title": "InputCommon",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.installation",
+            "title": "Installation",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.gamehome",
+            "title": "Juegos",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "kocowa.app-1.19201",
+            "title": "KOCOWA+",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "com.latintv.hosted",
+            "title": "Latin TV",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "com.latincable",
+            "title": "Latin+",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "com.webos.app.learning",
+            "title": "Learning",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.lgchannels",
+            "title": "LG Channels",
+            "removable": false,
+            "visible": true
+          },
+          {
+            "id": "com.webos.app.lifeonscreen",
+            "title": "LG Gallery+",
+            "removable": false,
+            "visible": true
+          },
+          {
+            "id": "com.webos.app.overlaymembership",
+            "title": "LG Overlay Account",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.livedmost",
+            "title": "Live Dmost",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.liveginga",
+            "title": "Live Ginga App Launcher",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.livehbbtv",
+            "title": "Live HbbTV",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.liveinteractivecontent",
+            "title": "Live Interactive Content",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.livetvopapp",
+            "title": "Live TV OpApp Mode",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.acrcomponent",
+            "title": "LivePlus",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.acrhdmi1",
+            "title": "LivePlus",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.acrhdmi2",
+            "title": "LivePlus",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.acrhdmi3",
+            "title": "LivePlus",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.acrhdmi4",
+            "title": "LivePlus",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.acroverlay",
+            "title": "LivePlus",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.tvhotkey",
+            "title": "Local Control Panel",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.magicnum",
+            "title": "Magic Number",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.mifibrago.hosted",
+            "title": "Mi Fibra GO",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "com.webos.app.multiviewsettings",
+            "title": "Multi View",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.totalmusic",
+            "title": "Música",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.browser",
+            "title": "Navegador web",
+            "removable": false,
+            "visible": true
+          },
+          {
+            "id": "netflix",
+            "title": "Netflix",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "com.webos.app.notificationcenter",
+            "title": "Notificaciones",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.homeoffice",
+            "title": "Oficina en el Hogar",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.onetouchsoundtuning",
+            "title": "One Touch Sound Tuning",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.picturewizard",
+            "title": "Picture Wizard",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "amazon",
+            "title": "Prime Video",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "com.palm.app.firstuse",
+            "title": "Primer uso",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.scheduler",
+            "title": "Programador",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.screensaver",
+            "title": "Protector de pantalla",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.adapp",
+            "title": "Publicidad",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.factorywin",
+            "title": "QML Factorywin",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.rdp",
+            "title": "Remote PC",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.remoteservice",
+            "title": "Remote Service",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.btspeakerapp",
+            "title": "Reproducción de Audio Bluetooth",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.mediadiscovery",
+            "title": "Reproductor de Medios",
+            "removable": false,
+            "visible": true
+          },
+          {
+            "id": "com.webos.app.miracast",
+            "title": "Screen Share",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.voice",
+            "title": "Search",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.seniorhome",
+            "title": "Senior Home",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.customersupport",
+            "title": "Servicio de atención al cliente ",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.channelsetting",
+            "title": "Sintonización de Canales",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.softwareupdate",
+            "title": "Software Update",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.hdmioptical",
+            "title": "Sound Share",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.soundbar-setting",
+            "title": "Soundbar Setting",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.sync-demo",
+            "title": "Sync Demo",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.exampleapp.systemui",
+            "title": "System UI Example",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.tidal.tv",
+            "title": "TIDAL",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "com.webos.app.tinybrowser",
+            "title": "tinybrowser",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.leaudio",
+            "title": "Transmitiendo en Auracast™",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.tufibra.hosted",
+            "title": "Tu Fibra TV",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "com.webos.app.livetv",
+            "title": "TV en Vivo",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "tv.twitch.tv.starshot.lg",
+            "title": "Twitch",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "com.webos.app.usbc1",
+            "title": "USB-C1",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.usbc2",
+            "title": "USB-C2",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.tvsimpleviewer",
+            "title": "Viewer",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.voiceweb",
+            "title": "voiceweb",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.webapphost",
+            "title": "Web App",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "com.webos.app.renewupdate",
+            "title": "webOS Re:Nuevo programa",
+            "removable": false,
+            "visible": false
+          },
+          {
+            "id": "youtube.leanback.v4",
+            "title": "YouTube",
+            "removable": true,
+            "visible": true
+          }
+        ]
       }
     ],
     "android": [

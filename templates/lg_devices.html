@@ -38,24 +38,34 @@
         <hr style="border-color:#0f3460; margin:1rem 0;">
 
         <p><strong>Developer Mode / IPK (ares)</strong></p>
-        <p class="hint">TV: Developer Mode ON → reiniciar → Key Server ON → passphrase en pantalla.</p>
+        <p class="hint">
+            <strong>Orden obligatorio:</strong> 1 Registrar → 2 Vincular (con passphrase de la TV) → 3 Verificar.
+            Si pulsas Verificar antes, verás <code>authentication methods failed</code> — es normal.
+        </p>
 
         <div class="form-group">
-            <label>Nombre ares (-d)</label>
+            <label>Paso 1 — Nombre ares (-d)</label>
             <input type="text" id="ares-device-{{ tv.ip }}" value="{{ tv.ares_device or '' }}" placeholder="lgtv_1">
-            <label>Puerto</label>
+            <label>Puerto (9922)</label>
             <input type="number" id="ares-port-{{ tv.ip }}" value="{{ tv.ares_port or 9922 }}" style="width:100px;">
-            <label>Usuario SSH</label>
-            <input type="text" id="ares-user-{{ tv.ip }}" value="{{ tv.ares_user or 'developer' }}">
-            <button class="btn btn-secondary" onclick="saveAresConfig('{{ tv.ip }}')">💾 Guardar config</button>
+            <button class="btn btn-secondary" onclick="saveAresConfig('{{ tv.ip }}')">💾 Guardar</button>
             <button class="btn" onclick="aresSetup('{{ tv.ip }}')">1️⃣ Registrar en ares</button>
         </div>
 
-        <div class="form-group">
-            <label>Passphrase (la muestra la TV)</label>
-            <input type="text" id="ares-pass-{{ tv.ip }}" placeholder="pegar passphrase">
+        <div class="form-group" style="background:#0a0a14; padding:0.8rem; border-radius:8px;">
+            <label><strong>Paso 2 — Passphrase de la TV</strong></label>
+            <p class="hint" style="margin-bottom:0.5rem;">
+                En la TV: app <strong>Developer Mode</strong> → <strong>Key Server ON</strong>.
+                Copia el código que aparece en la pantalla de la TV (no es tu contraseña de Windows).
+            </p>
+            <input type="text" id="ares-pass-{{ tv.ip }}" placeholder="ej: ABCD-1234 (lo que muestra la TV)" autocomplete="off">
             <button class="btn btn-secondary" onclick="aresGetkey('{{ tv.ip }}')">2️⃣ Vincular (getkey)</button>
-            <button class="btn btn-success" onclick="aresVerify('{{ tv.ip }}')">3️⃣ Verificar</button>
+            <p class="hint">Si falló antes: borra <code>C:\Users\PC1\.ssh\{{ tv.ares_device }}_webos</code> y repite paso 2.</p>
+        </div>
+
+        <div class="form-group">
+            <button class="btn btn-success" onclick="aresVerify('{{ tv.ip }}')">3️⃣ Verificar vinculación</button>
+            <span class="hint">Solo después de que el paso 2 diga OK</span>
         </div>
 
         <div class="form-group">
@@ -93,7 +103,7 @@
 
 <script>
     async function scanLG() {
-        const data = await apiCall('/api/lg/scan', { method: 'POST' });
+        const data = await apiCall('/api/lg/scan', { method: 'POST' }, 'Escanear TVs LG');
         if (data.result === 'ok' || data.count > 0) setTimeout(() => location.reload(), 800);
     }
 
@@ -101,13 +111,12 @@
         const name = document.getElementById('lg-name').value;
         const ip = document.getElementById('lg-ip').value;
         if (!name || !ip) return alert('Nombre e IP obligatorios');
-        await apiCall('/api/lg/add', { method: 'POST', body: JSON.stringify({ name, ip }) });
+        await apiCall('/api/lg/add', { method: 'POST', body: JSON.stringify({ name, ip }) }, 'Agregar TV LG');
         location.reload();
     }
 
     async function authLG(ip) {
-        log('Emparejando lgtv... Acepta popup en TV');
-        await apiCall(`/api/lg/auth/${ip}`, { method: 'POST' });
+        await apiCall(`/api/lg/auth/${ip}`, { method: 'POST' }, 'Emparejar lgtv (acepta en TV)');
         setTimeout(() => location.reload(), 500);
     }
 
@@ -116,14 +125,14 @@
     }
     async function sendUrlLG(ip) {
         const url = document.getElementById(`url-input-${ip}`).value;
-        await apiCall('/api/lg/open-url', { method: 'POST', body: JSON.stringify({ ip, url }) });
+        await apiCall('/api/lg/open-url', { method: 'POST', body: JSON.stringify({ ip, url }) }, 'Abrir URL');
     }
     async function quickUrlLG(ip, url) {
-        await apiCall('/api/lg/open-url', { method: 'POST', body: JSON.stringify({ ip, url }) });
+        await apiCall('/api/lg/open-url', { method: 'POST', body: JSON.stringify({ ip, url }) }, 'Abrir YouTube');
     }
 
     async function saveAresConfig(ip) {
-        await apiCall('/api/lg/ares/save-config', {
+        return apiCall('/api/lg/ares/save-config', {
             method: 'POST',
             body: JSON.stringify({
                 ip,
@@ -131,28 +140,29 @@
                 ares_port: parseInt(document.getElementById(`ares-port-${ip}`).value, 10) || 9922,
                 ares_user: document.getElementById(`ares-user-${ip}`).value.trim() || 'developer'
             })
-        });
+        }, 'Guardar config ares');
     }
 
     async function aresSetup(ip) {
         await saveAresConfig(ip);
-        log('Registrando dispositivo en ares...');
-        await apiCall('/api/lg/ares/setup', { method: 'POST', body: JSON.stringify({ ip }) });
+        await apiCall('/api/lg/ares/setup', { method: 'POST', body: JSON.stringify({ ip }) }, '1 Registrar en ares');
     }
 
     async function aresGetkey(ip) {
         await saveAresConfig(ip);
-        const passphrase = document.getElementById(`ares-pass-${ip}`).value;
-        log('Vinculando con passphrase de la TV...');
+        const passphrase = document.getElementById(`ares-pass-${ip}`).value.trim();
+        if (!passphrase) {
+            alert('Primero copia la passphrase que muestra la TV (Developer Mode → Key Server ON)');
+            return;
+        }
         await apiCall('/api/lg/ares/getkey', {
             method: 'POST',
             body: JSON.stringify({ ip, passphrase })
-        });
+        }, '2 Vincular getkey (30-90s)');
     }
 
     async function aresVerify(ip) {
-        log('Verificando vinculación...');
-        const data = await apiCall('/api/lg/ares/verify', { method: 'POST', body: JSON.stringify({ ip }) });
+        const data = await apiCall('/api/lg/ares/verify', { method: 'POST', body: JSON.stringify({ ip }) }, '3 Verificar ares');
         if (data.linked) setTimeout(() => location.reload(), 600);
     }
 
@@ -162,8 +172,7 @@
         const fd = new FormData();
         fd.append('ipk', fi.files[0]);
         fd.append('ip', ip);
-        log('Instalando IPK (puede tardar)...');
-        await apiCall('/api/lg/ares/install-ipk', { method: 'POST', body: fd });
+        await apiCall('/api/lg/ares/install-ipk', { method: 'POST', body: fd }, 'Instalar IPK (1-3 min)');
     }
 
     function closeLgAppsModal() {
@@ -194,7 +203,7 @@
         document.getElementById('lg-apps-modal').classList.add('open');
         document.getElementById('lg-apps-modal-title').textContent = `Apps del sistema — ${ip}`;
         document.getElementById('lg-apps-modal-body').innerHTML = '<p class="hint">Cargando...</p>';
-        const data = await apiCall('/api/lg/list-apps', { method: 'POST', body: JSON.stringify({ ip }) });
+        const data = await apiCall('/api/lg/list-apps', { method: 'POST', body: JSON.stringify({ ip }) }, 'Listar apps sistema (30-60s)');
         if (data.apps) renderLgSystemApps(ip, data.apps);
         else document.getElementById('lg-apps-modal-body').innerHTML = `<p>${data.message || 'Error'}</p>`;
     }
@@ -230,7 +239,7 @@
         document.getElementById('lg-ares-modal').classList.add('open');
         document.getElementById('lg-ares-modal-title').textContent = `Apps IPK — ${ip}`;
         document.getElementById('lg-ares-modal-body').innerHTML = '<p class="hint">Leyendo apps instaladas...</p>';
-        const data = await apiCall('/api/lg/ares/list-installed', { method: 'POST', body: JSON.stringify({ ip }) });
+        const data = await apiCall('/api/lg/ares/list-installed', { method: 'POST', body: JSON.stringify({ ip }) }, 'Listar apps IPK');
         if (data.packages) renderAresApps(ip, data.packages);
         else document.getElementById('lg-ares-modal-body').innerHTML = `<p>${data.message || 'Error'}</p>`;
     }
@@ -243,11 +252,11 @@
     });
 
     async function powerLG(ip, action) {
-        await apiCall('/api/lg/power', { method: 'POST', body: JSON.stringify({ ip, action }) });
+        await apiCall('/api/lg/power', { method: 'POST', body: JSON.stringify({ ip, action }) }, action === 'on' ? 'Encender' : 'Apagar');
     }
     async function removeLG(ip) {
         if (!confirm('¿Eliminar esta TV?')) return;
-        await apiCall(`/api/lg/remove/${ip}`, { method: 'DELETE' });
+        await apiCall(`/api/lg/remove/${ip}`, { method: 'DELETE' }, 'Quitar TV');
         location.reload();
     }
 </script>

@@ -3,7 +3,57 @@
 <div class="card">
     <h1>🎯 TV Control Panel - NOC</h1>
     <p>PC servidor: <code>{{ server_ip }}</code> · URL: <code>http://{{ server_ip }}:5000</code></p>
-    <p class="hint">ADB: <code>{{ tools.adb }}</code></p>
+</div>
+
+<div class="card">
+    <h2>📋 Televisores registrados</h2>
+    <p class="hint">Aquí ves todas las TVs guardadas. Cambia el nombre y pulsa Guardar. Para controlarlas, usa Gestionar.</p>
+
+    {% if devices.lg_tvs or devices.android_devices %}
+    <table style="width:100%; border-collapse:collapse; margin-top:0.5rem;">
+        <thead>
+            <tr style="text-align:left; border-bottom:1px solid #0f3460;">
+                <th style="padding:0.5rem;">Tipo</th>
+                <th style="padding:0.5rem;">Nombre</th>
+                <th style="padding:0.5rem;">IP</th>
+                <th style="padding:0.5rem;">Estado</th>
+                <th style="padding:0.5rem;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tv in devices.lg_tvs %}
+            <tr style="border-bottom:1px solid #0f3460;">
+                <td style="padding:0.5rem;">📺 LG</td>
+                <td style="padding:0.5rem;">
+                    <input type="text" id="name-lg-{{ tv.ip }}" value="{{ tv.name }}" style="width:100%; max-width:220px;">
+                </td>
+                <td style="padding:0.5rem;"><code>{{ tv.ip }}</code></td>
+                <td style="padding:0.5rem;">{{ tv.status or '—' }}{% if tv.ares_linked %} · ares OK{% endif %}</td>
+                <td style="padding:0.5rem;">
+                    <button class="btn btn-sm btn-success" onclick="renameDevice('lg','{{ tv.ip }}')">💾</button>
+                    <a href="/lg" class="btn btn-sm">Gestionar</a>
+                </td>
+            </tr>
+            {% endfor %}
+            {% for dev in devices.android_devices %}
+            <tr style="border-bottom:1px solid #0f3460;">
+                <td style="padding:0.5rem;">🤖 Android</td>
+                <td style="padding:0.5rem;">
+                    <input type="text" id="name-android-{{ dev.ip }}" value="{{ dev.name }}" style="width:100%; max-width:220px;">
+                </td>
+                <td style="padding:0.5rem;"><code>{{ dev.ip }}</code></td>
+                <td style="padding:0.5rem;">{{ dev.status or '—' }}</td>
+                <td style="padding:0.5rem;">
+                    <button class="btn btn-sm btn-success" onclick="renameDevice('android','{{ dev.ip }}')">💾</button>
+                    <a href="/android" class="btn btn-sm">Gestionar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="margin-top:0.5rem;">No hay dispositivos. Agrégalos abajo.</p>
+    {% endif %}
 </div>
 
 <div class="card">
@@ -11,20 +61,16 @@
     <div class="form-group">
         <label>Tipo</label>
         <select id="add-type" onchange="toggleAddType()">
-            <option value="lg">📺 LG webOS (lgtv)</option>
-            <option value="android">🤖 Android TV (ADB / scrcpy)</option>
+            <option value="lg">📺 LG webOS</option>
+            <option value="android">🤖 Android TV</option>
         </select>
     </div>
-    <input type="text" id="add-name" placeholder="Nombre (ej: TV Sala)">
+    <input type="text" id="add-name" placeholder="Nombre (ej: TV Sala Recepción)">
     <input type="text" id="add-ip" placeholder="IP (ej: 192.168.0.50)">
     <span id="android-code-wrap" style="display:none;">
         <input type="text" id="add-code" placeholder="Código ADB (opcional: IP:5555)">
     </span>
     <button class="btn btn-success" onclick="addDevice()">Agregar</button>
-    <p class="hint" id="add-hint-lg">LG: luego Autenticar en la TV y abrir URLs/apps.</p>
-    <p class="hint" id="add-hint-android" style="display:none;">
-        Android: activa ADB por red en la TV → Conectar ADB → install APK / scrcpy.
-    </p>
 </div>
 
 <div class="grid">
@@ -32,11 +78,11 @@
     <div class="card">
         <h2>{{ ct.icon }} {{ ct.display_name }}</h2>
         {% if ct.id == 'lg' %}
-        <p>Registradas: <strong>{{ devices.lg_tvs|length }}</strong></p>
+        <p>Total: <strong>{{ devices.lg_tvs|length }}</strong></p>
         {% elif ct.id == 'android' %}
-        <p>Registradas: <strong>{{ devices.android_devices|length }}</strong></p>
+        <p>Total: <strong>{{ devices.android_devices|length }}</strong></p>
         {% endif %}
-        <a href="{{ ct.route }}" class="btn">Gestionar</a>
+        <a href="{{ ct.route }}" class="btn">Ir a sección</a>
     </div>
     {% endfor %}
 </div>
@@ -45,27 +91,32 @@
     function toggleAddType() {
         const android = document.getElementById('add-type').value === 'android';
         document.getElementById('android-code-wrap').style.display = android ? 'inline' : 'none';
-        document.getElementById('add-hint-lg').style.display = android ? 'none' : 'block';
-        document.getElementById('add-hint-android').style.display = android ? 'block' : 'none';
+    }
+
+    async function renameDevice(type, ip) {
+        const input = document.getElementById(`name-${type}-${ip}`);
+        const name = input.value.trim();
+        if (!name) return alert('El nombre no puede estar vacío');
+        const data = await apiCall('/api/devices/rename', {
+            method: 'POST',
+            body: JSON.stringify({ type, ip, name })
+        });
+        if (data.success) log('Nombre guardado: ' + name);
     }
 
     async function addDevice() {
         const type = document.getElementById('add-type').value;
         const name = document.getElementById('add-name').value.trim();
         const ip = document.getElementById('add-ip').value.trim();
-        const code = document.getElementById('add-code').value.trim() || null;
+        const code = document.getElementById('add-code')?.value.trim() || null;
         if (!name || !ip) return alert('Nombre e IP obligatorios');
-
         const body = { type, name, ip };
         if (type === 'android') body.device_code = code;
-
         const data = await apiCall('/api/devices/add', {
             method: 'POST',
             body: JSON.stringify(body)
         });
-        if (data.success) {
-            window.location.href = type === 'lg' ? '/lg' : '/android';
-        }
+        if (data.success) location.reload();
     }
 </script>
 {% endblock %}
