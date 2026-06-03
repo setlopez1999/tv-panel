@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from tools_paths import get_adb_path, get_scrcpy_dir, get_scrcpy_path
+from tools_paths import get_adb_path, get_scrcpy_dir, get_scrcpy_path, tools_info
 
 
 class AndroidDriver:
@@ -30,8 +30,8 @@ class AndroidDriver:
                 msg = msg or "Comando ADB ejecutado correctamente"
             elif "device offline" in msg.lower():
                 msg = "Dispositivo offline. Pulsa «Conectar ADB» primero."
-            elif "unauthorized" in msg.lower():
-                msg = "No autorizado. Acepta depuración por red en la TV."
+            elif "unauthorized" in msg.lower() or "authenticate" in msg.lower():
+                msg = "No autorizado. En la TV acepta «Permitir depuración» y pulsa Conectar de nuevo."
             elif "not found" in msg.lower() or "no devices" in msg.lower():
                 msg = "Sin dispositivo. Conecta con: adb connect " + self.device_code
             return {
@@ -78,8 +78,9 @@ class AndroidDriver:
             return {"success": False, "message": str(e)}
 
     def install_apk(self, apk_path: str):
-        if not os.path.exists(apk_path):
-            return {"success": False, "message": "APK no encontrado en el servidor"}
+        apk_path = os.path.abspath(apk_path)
+        if not os.path.isfile(apk_path):
+            return {"success": False, "message": f"APK no encontrado: {apk_path}"}
         return self._run(
             self._adb_device("install", "-r", apk_path),
             timeout=300,
@@ -102,14 +103,30 @@ class AndroidDriver:
             )
         )
 
+    @staticmethod
+    def parse_packages(stdout: str) -> list:
+        packages = []
+        for line in (stdout or "").splitlines():
+            line = line.strip()
+            if line.startswith("package:"):
+                packages.append(line.split("package:", 1)[1].strip())
+        return sorted(set(packages))
+
     def list_packages(self):
-        return self._run(self._adb_device("shell", "pm", "list", "packages", "-3"))
+        result = self._run(self._adb_device("shell", "pm", "list", "packages", "-3"))
+        packages = self.parse_packages(result.get("stdout", ""))
+        result["packages"] = packages
+        result["count"] = len(packages)
+        if packages:
+            result["message"] = f"{len(packages)} aplicaciones encontradas"
+        return result
 
     def uninstall(self, package_name: str):
         return self._run(self._adb_device("uninstall", package_name))
 
     def push_file(self, local_path: str, remote_path: str):
-        if not os.path.exists(local_path):
+        local_path = os.path.abspath(local_path)
+        if not os.path.isfile(local_path):
             return {"success": False, "message": "Archivo local no encontrado"}
         return self._run(
             self._adb_device("push", local_path, remote_path),
@@ -130,10 +147,24 @@ class AndroidDriver:
         return self._run(args)
 
     def get_screenshot(self) -> str:
-        tmp_path = "/sdcard/screen.png"
-        self._run(self._adb_device("shell", "screencap", "-p", tmp_path))
-        local_tmp = f"tmp_screen_{self.ip.replace('.', '_')}.png"
-        self._run(self._adb_device("pull", tmp_path, local_tmp))
+        """Captura vía exec-out (evita rutas relativas y corrupción en Windows)."""
+        local_tmp = os.path.abspath(f"tmp_screen_{self.ip.replace('.', '_')}.png")
+        try:
+            result = subprocess.run(
+                self._adb_device("exec-out", "screencap", "-p"),
+                capture_output=True,
+                timeout=30,
+            )
+            if result.returncode == 0 and result.stdout and len(result.stdout) > 100:
+                with open(local_tmp, "wb") as f:
+                    f.write(result.stdout)
+                return local_tmp
+        except Exception:
+            pass
+        # Fallback: pull clásico con ruta absoluta
+        tmp_remote = "/sdcard/tv_panel_screen.png"
+        self._run(self._adb_device("shell", "screencap", "-p", tmp_remote))
+        self._run(self._adb_device("pull", tmp_remote, local_tmp))
         return local_tmp
 
     def start_scrcpy(self, on_host: bool = True):

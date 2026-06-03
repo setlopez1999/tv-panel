@@ -2,87 +2,79 @@
 {% block content %}
 <div class="card">
     <h1>🤖 Android TV (ADB)</h1>
-    <p class="hint">Herramientas: <code>{{ tools.adb }}</code></p>
+    <p class="hint">ADB: <code>{{ tools.adb }}</code></p>
     <button class="btn btn-secondary" onclick="listAdbDevices()">📋 adb devices</button>
     <button class="btn btn-secondary" onclick="location.href='/'">➕ Agregar desde inicio</button>
+    <p class="hint">Si dice «failed to authenticate»: en la TV acepta «Permitir depuración USB» y vuelve a Conectar.</p>
 </div>
 
 <div class="grid">
     {% for device in devices %}
     <div class="card">
-        <h3>{{ device.name }} <span class="hint">(Android)</span></h3>
-        <p>IP: <code>{{ device.ip }}</code></p>
-        <p>Código: <code>{{ device.device_code }}</code> → <code>scrcpy -s {{ device.device_code }}</code></p>
+        <h3>{{ device.name }}</h3>
+        <p>IP: <code>{{ device.ip }}</code> · Código: <code>{{ device.device_code }}</code></p>
 
-        <p><strong>Conexión</strong></p>
-        <button class="btn btn-secondary" onclick="connectAndroid('{{ device.ip }}')">🔗 adb connect</button>
-        <button class="btn btn-success" onclick="startScrcpy('{{ device.ip }}')">📺 scrcpy (este PC)</button>
-        <a class="btn btn-secondary" href="/api/android/launcher/{{ device.ip }}">💻 scrcpy en mi PC (.cmd)</a>
+        <button class="btn btn-secondary" onclick="connectAndroid('{{ device.ip }}')">🔗 Conectar ADB</button>
+        <button class="btn btn-success" onclick="startScrcpy('{{ device.ip }}')">📺 scrcpy</button>
         <button class="btn btn-secondary" onclick="takeScreenshot('{{ device.ip }}')">📸 Pantalla web</button>
+        <a class="btn btn-secondary" href="/api/android/launcher/{{ device.ip }}">💻 .cmd scrcpy</a>
 
-        <p style="margin-top:0.8rem;"><strong>Apps y contenido</strong></p>
+        <p style="margin-top:0.8rem;"><strong>Apps</strong></p>
+        <button class="btn btn-secondary" onclick="openPackagesModal('{{ device.ip }}')">📋 Menú de apps</button>
         <button class="btn btn-success" onclick="quickUrlAndroid('{{ device.ip }}', 'https://youtube.com')">▶ YouTube</button>
         <button class="btn" onclick="openUrlAndroid('{{ device.ip }}')">🌐 URL</button>
-        <button class="btn" onclick="openAppAndroid('{{ device.ip }}')">📱 Abrir paquete</button>
-        <button class="btn btn-secondary" onclick="listPackages('{{ device.ip }}')">📋 Paquetes (-3)</button>
-        <button class="btn btn-danger" onclick="uninstallPkg('{{ device.ip }}')">🗑️ Desinstalar</button>
 
-        <p style="margin-top:0.8rem;"><strong>Control remoto</strong></p>
-        <button class="btn btn-secondary" onclick="keyevent('{{ device.ip }}', 3)">🏠 Home</button>
-        <button class="btn btn-secondary" onclick="keyevent('{{ device.ip }}', 4)">◀ Atrás</button>
-        <button class="btn btn-secondary" onclick="keyevent('{{ device.ip }}', 24)">🔊 +</button>
-        <button class="btn btn-secondary" onclick="keyevent('{{ device.ip }}', 25)">🔉 −</button>
-        <button class="btn" onclick="sendText('{{ device.ip }}')">⌨️ Texto</button>
-        <button class="btn btn-danger" onclick="rebootDev('{{ device.ip }}', false)">🔄 Reiniciar</button>
-        <button class="btn btn-danger" onclick="rebootDev('{{ device.ip }}', true)">⏻ Apagar</button>
+        <p style="margin-top:0.8rem;"><strong>Control</strong></p>
+        <button class="btn btn-secondary" onclick="keyevent('{{ device.ip }}', 3)">🏠</button>
+        <button class="btn btn-secondary" onclick="keyevent('{{ device.ip }}', 4)">◀</button>
+        <button class="btn btn-secondary" onclick="keyevent('{{ device.ip }}', 24)">🔊+</button>
+        <button class="btn btn-secondary" onclick="keyevent('{{ device.ip }}', 25)">🔊−</button>
+        <button class="btn" onclick="sendText('{{ device.ip }}')">⌨️</button>
 
         <div id="url-form-{{ device.ip }}" style="display:none; margin-top:0.5rem;">
             <input type="text" id="url-input-{{ device.ip }}" value="https://youtube.com">
             <button class="btn btn-success" onclick="sendUrlAndroid('{{ device.ip }}')">✓</button>
         </div>
-        <div id="app-form-{{ device.ip }}" style="display:none; margin-top:0.5rem;">
-            <input type="text" id="app-input-{{ device.ip }}" placeholder="com.ejemplo.app">
-            <button class="btn btn-success" onclick="sendAppAndroid('{{ device.ip }}')">✓</button>
-        </div>
-        <div id="uninstall-form-{{ device.ip }}" style="display:none; margin-top:0.5rem;">
-            <input type="text" id="uninstall-input-{{ device.ip }}" placeholder="nombre.del.paquete">
-            <button class="btn btn-danger" onclick="doUninstall('{{ device.ip }}')">✓ Desinstalar</button>
-        </div>
         <div id="text-form-{{ device.ip }}" style="display:none; margin-top:0.5rem;">
-            <input type="text" id="text-input-{{ device.ip }}" placeholder="texto a escribir">
+            <input type="text" id="text-input-{{ device.ip }}" placeholder="texto">
             <button class="btn btn-success" onclick="doSendText('{{ device.ip }}')">✓</button>
         </div>
 
         <div style="margin-top:0.8rem;">
-            <strong>📦 Instalar APK</strong> (adb install)
+            <strong>📦 APK</strong>
             <input type="file" id="apk-file-{{ device.ip }}" accept=".apk" style="display:block; margin-top:0.3rem;">
-            <button class="btn btn-success" onclick="installApk('{{ device.ip }}')">Instalar</button>
-        </div>
-        <div style="margin-top:0.5rem;">
-            <strong>📁 Subir archivo</strong> (adb push → /sdcard/Download/)
-            <input type="file" id="push-file-{{ device.ip }}" style="display:block; margin-top:0.3rem;">
-            <button class="btn btn-secondary" onclick="pushFile('{{ device.ip }}')">Subir</button>
+            <button class="btn btn-success" onclick="installApk('{{ device.ip }}')">Instalar APK</button>
         </div>
 
-        <div id="packages-{{ device.ip }}" class="log-box" style="max-height:120px; margin-top:0.5rem; display:none;"></div>
         <div id="screenshot-{{ device.ip }}" style="margin-top:1rem;"></div>
-        <button class="btn btn-danger" style="margin-top:0.5rem;" onclick="removeAndroid('{{ device.ip }}')">🗑️ Quitar de la lista</button>
+        <button class="btn btn-danger" style="margin-top:0.5rem;" onclick="removeAndroid('{{ device.ip }}')">🗑️ Quitar</button>
     </div>
     {% else %}
-    <div class="card">
-        <p>No hay Android TV. En el <a href="/">inicio</a> elige tipo <strong>Android TV</strong>, pon la IP y agrega.</p>
-        <p class="hint">En la TV: ADB over network ON. Luego: Conectar → install APK o scrcpy.</p>
-    </div>
+    <div class="card"><p>Sin Android TV. <a href="/">Agregar</a> tipo Android.</p></div>
     {% endfor %}
 </div>
 
+<div id="packages-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="packages-modal-title">Apps en la TV</h3>
+            <button class="btn btn-secondary btn-sm" onclick="closePackagesModal()">✕ Cerrar</button>
+        </div>
+        <div class="modal-body" id="packages-modal-body">
+            <p class="hint">Cargando...</p>
+        </div>
+    </div>
+</div>
+
 <script>
+    let packagesModalIp = null;
+
     async function listAdbDevices() {
         await apiCall('/api/android/devices');
     }
 
     async function connectAndroid(ip) {
-        log(`adb connect ${ip}:5555 ...`);
+        log(`Conectando ${ip}:5555...`);
         await apiCall(`/api/android/connect/${ip}`, { method: 'POST' });
     }
 
@@ -97,28 +89,68 @@
         await apiCall('/api/android/open-url', { method: 'POST', body: JSON.stringify({ ip, url }) });
     }
 
-    function openAppAndroid(ip) {
-        document.getElementById(`app-form-${ip}`).style.display = 'block';
-    }
-    async function sendAppAndroid(ip) {
-        const pkg = document.getElementById(`app-input-${ip}`).value;
-        await apiCall('/api/android/open-app', { method: 'POST', body: JSON.stringify({ ip, package: pkg }) });
+    function closePackagesModal() {
+        document.getElementById('packages-modal').classList.remove('open');
+        packagesModalIp = null;
     }
 
-    async function listPackages(ip) {
-        const data = await apiCall('/api/android/list-packages', { method: 'POST', body: JSON.stringify({ ip }) });
-        const box = document.getElementById(`packages-${ip}`);
-        box.style.display = 'block';
-        box.textContent = data.stdout || data.message || 'Sin datos';
+    function renderPackagesModal(ip, packages) {
+        const body = document.getElementById('packages-modal-body');
+        if (!packages.length) {
+            body.innerHTML = '<p>No se encontraron apps de usuario. ¿Conectaste ADB?</p>';
+            return;
+        }
+        body.innerHTML = packages.map(pkg => `
+            <div class="pkg-item">
+                <span class="pkg-name">${pkg}</span>
+                <button type="button" class="btn btn-success btn-sm" data-action="open" data-ip="${ip}" data-pkg="${pkg}">Abrir</button>
+                <button type="button" class="btn btn-danger btn-sm" data-action="uninstall" data-ip="${ip}" data-pkg="${pkg}">Desinstalar</button>
+            </div>
+        `).join('');
+        body.querySelectorAll('button[data-action]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const action = btn.dataset.action;
+                const p = btn.dataset.pkg;
+                const deviceIp = btn.dataset.ip;
+                if (action === 'open') {
+                    log(`Abriendo ${p}...`);
+                    await apiCall('/api/android/open-app', {
+                        method: 'POST',
+                        body: JSON.stringify({ ip: deviceIp, package: p })
+                    });
+                } else if (action === 'uninstall') {
+                    if (!confirm(`¿Desinstalar ${p}?`)) return;
+                    log(`Desinstalando ${p}...`);
+                    const r = await apiCall('/api/android/uninstall', {
+                        method: 'POST',
+                        body: JSON.stringify({ ip: deviceIp, package: p })
+                    });
+                    if (r.success) openPackagesModal(deviceIp);
+                }
+            });
+        });
     }
 
-    function uninstallPkg(ip) {
-        document.getElementById(`uninstall-form-${ip}`).style.display = 'block';
+    async function openPackagesModal(ip) {
+        packagesModalIp = ip;
+        document.getElementById('packages-modal').classList.add('open');
+        document.getElementById('packages-modal-title').textContent = `Apps — ${ip}`;
+        document.getElementById('packages-modal-body').innerHTML = '<p class="hint">Leyendo paquetes de la TV...</p>';
+        const data = await apiCall('/api/android/list-packages', {
+            method: 'POST',
+            body: JSON.stringify({ ip })
+        });
+        if (data.packages) {
+            renderPackagesModal(ip, data.packages);
+        } else {
+            document.getElementById('packages-modal-body').innerHTML =
+                `<p>${data.message || 'Error al listar apps'}</p>`;
+        }
     }
-    async function doUninstall(ip) {
-        const pkg = document.getElementById(`uninstall-input-${ip}`).value;
-        await apiCall('/api/android/uninstall', { method: 'POST', body: JSON.stringify({ ip, package: pkg }) });
-    }
+
+    document.getElementById('packages-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'packages-modal') closePackagesModal();
+    });
 
     async function keyevent(ip, key) {
         await apiCall('/api/android/keyevent', { method: 'POST', body: JSON.stringify({ ip, key }) });
@@ -132,24 +164,22 @@
         await apiCall('/api/android/input-text', { method: 'POST', body: JSON.stringify({ ip, text }) });
     }
 
-    async function rebootDev(ip, powerOff) {
-        if (!confirm(powerOff ? '¿Apagar la TV?' : '¿Reiniciar la TV?')) return;
-        await apiCall('/api/android/reboot', { method: 'POST', body: JSON.stringify({ ip, power_off: powerOff }) });
-    }
-
     async function startScrcpy(ip) {
         await apiCall(`/api/android/scrcpy/${ip}`, { method: 'POST' });
     }
 
     async function takeScreenshot(ip) {
-        const res = await fetch(`/api/android/screenshot/${ip}`);
-        if (res.ok) {
+        log('Capturando pantalla...');
+        const res = await fetch(`/api/android/screenshot/${ip}?t=${Date.now()}`);
+        const ct = res.headers.get('content-type') || '';
+        if (res.ok && ct.includes('image')) {
             const blob = await res.blob();
             document.getElementById(`screenshot-${ip}`).innerHTML =
-                `<img src="${URL.createObjectURL(blob)}" style="max-width:100%; border-radius:5px;">`;
-            log('Pantalla en el navegador');
+                `<img src="${URL.createObjectURL(blob)}" alt="TV" style="max-width:100%; border-radius:8px; border:1px solid #333;">`;
+            log('Pantalla mostrada');
         } else {
-            log('Error al capturar');
+            const err = await res.json().catch(() => ({ message: 'Error al capturar' }));
+            log(formatApiMessage(err));
         }
     }
 
@@ -159,18 +189,8 @@
         const fd = new FormData();
         fd.append('apk', fi.files[0]);
         fd.append('ip', ip);
-        log('Instalando APK (puede tardar)...');
+        log('Instalando APK (1-2 min)...');
         await apiCall('/api/android/install-apk', { method: 'POST', body: fd });
-    }
-
-    async function pushFile(ip) {
-        const fi = document.getElementById(`push-file-${ip}`);
-        if (!fi.files.length) return alert('Selecciona archivo');
-        const fd = new FormData();
-        fd.append('file', fi.files[0]);
-        fd.append('ip', ip);
-        fd.append('remote_path', '/sdcard/Download/' + fi.files[0].name);
-        await apiCall('/api/android/push-file', { method: 'POST', body: fd });
     }
 
     async function removeAndroid(ip) {

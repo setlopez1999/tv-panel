@@ -9,7 +9,7 @@ from routes import android_bp, lg_bp
 from tools_paths import get_adb_path, get_scrcpy_path, tools_info
 
 app = Flask(__name__)
-app.config["UPLOAD_FOLDER"] = "uploads"
+app.config["UPLOAD_FOLDER"] = os.path.abspath("uploads")
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 app.register_blueprint(lg_bp)
