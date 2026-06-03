@@ -1,58 +1,57 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="card">
-    <h1>📺 Gestión LG webOS</h1>
-    <div class="form-group">
-        <button class="btn btn-success" onclick="scanLG()">🔍 Escanear red y guardar</button>
-        <p class="hint">Busca TVs LG y las añade a la lista automáticamente.</p>
-    </div>
-    <div class="form-group">
-        <h3>Agregar manualmente</h3>
-        <input type="text" id="lg-name" placeholder="Nombre (ej: Sala Principal)">
-        <input type="text" id="lg-ip" placeholder="IP (ej: 192.168.0.196)">
-        <button class="btn" onclick="addLG()">➕ Agregar</button>
-    </div>
+    <h1>📺 LG webOS</h1>
+    <p class="hint">
+        <strong>Importante:</strong> LG no usa APK de Android. Las apps son webOS (IDs como <code>youtube.leanback.v4</code>).
+        Instalar/desinstalar paquetes .ipk requiere LG Content Store o herramientas de desarrollador (ares-cli), no este panel.
+    </p>
+    <button class="btn btn-success" onclick="scanLG()">🔍 Escanear red</button>
+    <input type="text" id="lg-name" placeholder="Nombre">
+    <input type="text" id="lg-ip" placeholder="IP">
+    <button class="btn" onclick="addLG()">➕ Agregar</button>
 </div>
 
 <div class="grid">
     {% for tv in tvs %}
     <div class="card">
         <h3>{{ tv.name }}</h3>
-        <p>IP: <code>{{ tv.ip }}</code></p>
-        {% if tv.lgtv_alias %}<p>Alias lgtv: <code>{{ tv.lgtv_alias }}</code></p>{% endif %}
-        <p>Estado: <span class="status-offline">{{ tv.status or 'unknown' }}</span></p>
+        <p>IP: <code>{{ tv.ip }}</code>{% if tv.lgtv_alias %} · Alias: <code>{{ tv.lgtv_alias }}</code>{% endif %}</p>
 
-        <div style="margin-top: 1rem;">
-            <button class="btn btn-secondary" onclick="authLG('{{ tv.ip }}')">🔐 Autenticar / Emparejar</button>
-            <button class="btn" onclick="openUrlLG('{{ tv.ip }}')">🌐 Abrir URL</button>
-            <button class="btn" onclick="openAppLG('{{ tv.ip }}')">📱 Abrir App</button>
-            <button class="btn btn-success" onclick="quickUrlLG('{{ tv.ip }}', 'https://youtube.com')">▶ YouTube</button>
-            <button class="btn btn-danger" onclick="powerLG('{{ tv.ip }}', 'off')">⏻ Apagar</button>
-            <button class="btn btn-success" onclick="powerLG('{{ tv.ip }}', 'on')">⏻ Encender</button>
-            <button class="btn btn-danger" onclick="removeLG('{{ tv.ip }}')">🗑️ Eliminar</button>
-        </div>
+        <button class="btn btn-secondary" onclick="authLG('{{ tv.ip }}')">🔐 Emparejar</button>
+        <button class="btn btn-secondary" onclick="openLgAppsModal('{{ tv.ip }}')">📋 Menú de apps</button>
+        <button class="btn btn-success" onclick="quickUrlLG('{{ tv.ip }}', 'https://youtube.com')">▶ YouTube web</button>
+        <button class="btn" onclick="openUrlLG('{{ tv.ip }}')">🌐 Abrir URL</button>
+        <button class="btn btn-danger" onclick="powerLG('{{ tv.ip }}', 'off')">⏻ Apagar</button>
+        <button class="btn btn-success" onclick="powerLG('{{ tv.ip }}', 'on')">⏻ Encender</button>
+        <button class="btn btn-danger" onclick="removeLG('{{ tv.ip }}')">🗑️ Quitar</button>
 
         <div id="url-form-{{ tv.ip }}" style="display:none; margin-top:0.5rem;">
-            <input type="text" id="url-input-{{ tv.ip }}" placeholder="https://..." value="https://youtube.com">
-            <button class="btn btn-success" onclick="sendUrlLG('{{ tv.ip }}')">✓ Enviar</button>
-        </div>
-
-        <div id="app-form-{{ tv.ip }}" style="display:none; margin-top:0.5rem;">
-            <input type="text" id="app-input-{{ tv.ip }}" placeholder="youtube.leanback.v4" value="youtube.leanback.v4">
-            <button class="btn btn-success" onclick="sendAppLG('{{ tv.ip }}')">✓ Abrir</button>
+            <input type="text" id="url-input-{{ tv.ip }}" value="https://youtube.com">
+            <button class="btn btn-success" onclick="sendUrlLG('{{ tv.ip }}')">✓</button>
         </div>
     </div>
     {% else %}
-    <div class="card"><p>No hay TVs LG. Escanea la red o agrega una manualmente.</p></div>
+    <div class="card"><p>Sin TVs LG. Escanea o agrega desde <a href="/">inicio</a>.</p></div>
     {% endfor %}
+</div>
+
+<div id="lg-apps-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="lg-apps-modal-title">Apps LG</h3>
+            <button class="btn btn-secondary btn-sm" onclick="closeLgAppsModal()">✕ Cerrar</button>
+        </div>
+        <div class="modal-body" id="lg-apps-modal-body">
+            <p class="hint">Cargando...</p>
+        </div>
+    </div>
 </div>
 
 <script>
     async function scanLG() {
-        log('Escaneando red por TVs LG...');
         const data = await apiCall('/api/lg/scan', { method: 'POST' });
         if (data.result === 'ok' || data.count > 0) {
-            log(`Encontradas: ${data.count || 0}. Guardadas nuevas: ${data.added ?? 0}`);
             setTimeout(() => location.reload(), 800);
         }
     }
@@ -60,13 +59,13 @@
     async function addLG() {
         const name = document.getElementById('lg-name').value;
         const ip = document.getElementById('lg-ip').value;
-        if (!name || !ip) return alert('Completa nombre e IP');
+        if (!name || !ip) return alert('Nombre e IP obligatorios');
         await apiCall('/api/lg/add', { method: 'POST', body: JSON.stringify({ name, ip }) });
         location.reload();
     }
 
     async function authLG(ip) {
-        log(`Emparejando ${ip}... Acepta el popup en la TV`);
+        log('Empareja en la TV si aparece popup...');
         await apiCall(`/api/lg/auth/${ip}`, { method: 'POST' });
         setTimeout(() => location.reload(), 500);
     }
@@ -84,14 +83,62 @@
         await apiCall('/api/lg/open-url', { method: 'POST', body: JSON.stringify({ ip, url }) });
     }
 
-    function openAppLG(ip) {
-        document.getElementById(`app-form-${ip}`).style.display = 'block';
+    function closeLgAppsModal() {
+        document.getElementById('lg-apps-modal').classList.remove('open');
     }
 
-    async function sendAppLG(ip) {
-        const app = document.getElementById(`app-input-${ip}`).value;
-        await apiCall('/api/lg/open-app', { method: 'POST', body: JSON.stringify({ ip, app_id: app }) });
+    function renderLgAppsModal(ip, apps) {
+        const body = document.getElementById('lg-apps-modal-body');
+        const visible = apps.filter(a => a.visible !== false);
+        if (!visible.length) {
+            body.innerHTML = '<p>No hay apps o error de conexión. Empareja la TV primero.</p>';
+            return;
+        }
+        body.innerHTML = visible.map(app => {
+            const rem = app.removable ? '<span class="hint"> (se puede quitar en TV)</span>' : '';
+            return `
+            <div class="pkg-item">
+                <span class="pkg-name"><strong>${app.title}</strong><br><code>${app.id}</code>${rem}</span>
+                <button type="button" class="btn btn-success btn-sm" data-lg-action="open" data-ip="${ip}" data-id="${app.id}">Abrir</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-lg-action="close" data-ip="${ip}" data-id="${app.id}">Cerrar</button>
+            </div>`;
+        }).join('');
+
+        body.querySelectorAll('button[data-lg-action]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const action = btn.dataset.lgAction;
+                const appId = btn.dataset.id;
+                const deviceIp = btn.dataset.ip;
+                const url = action === 'open' ? '/api/lg/open-app' : '/api/lg/close-app';
+                const key = action === 'open' ? 'app_id' : 'app_id';
+                log(`${action === 'open' ? 'Abriendo' : 'Cerrando'} ${appId}...`);
+                await apiCall(url, {
+                    method: 'POST',
+                    body: JSON.stringify({ ip: deviceIp, [key]: appId })
+                });
+            });
+        });
     }
+
+    async function openLgAppsModal(ip) {
+        document.getElementById('lg-apps-modal').classList.add('open');
+        document.getElementById('lg-apps-modal-title').textContent = `Apps LG — ${ip}`;
+        document.getElementById('lg-apps-modal-body').innerHTML = '<p class="hint">Leyendo apps de la TV (puede tardar unos segundos)...</p>';
+        const data = await apiCall('/api/lg/list-apps', {
+            method: 'POST',
+            body: JSON.stringify({ ip })
+        });
+        if (data.apps) {
+            renderLgAppsModal(ip, data.apps);
+        } else {
+            document.getElementById('lg-apps-modal-body').innerHTML =
+                `<p>${data.message || 'Error al listar apps'}</p>`;
+        }
+    }
+
+    document.getElementById('lg-apps-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'lg-apps-modal') closeLgAppsModal();
+    });
 
     async function powerLG(ip, action) {
         await apiCall('/api/lg/power', { method: 'POST', body: JSON.stringify({ ip, action }) });

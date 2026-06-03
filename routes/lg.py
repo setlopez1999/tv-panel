@@ -87,6 +87,22 @@ def lg_power():
     return jsonify(result)
 
 
+@lg_bp.route("/api/lg/list-apps", methods=["POST"])
+def lg_list_apps():
+    data = request.json or {}
+    ip = data["ip"]
+    result = _lg_driver_for_ip(ip).list_apps()
+    if result.get("apps"):
+        update_device("lg", ip, cached_apps=result["apps"])
+    return jsonify(result)
+
+
+@lg_bp.route("/api/lg/close-app", methods=["POST"])
+def lg_close_app():
+    data = request.json or {}
+    return jsonify(_lg_driver_for_ip(data["ip"]).close_app(data["app_id"]))
+
+
 @lg_bp.route("/api/lg/remove/<ip>", methods=["DELETE"])
 def lg_remove(ip):
     remove_device("lg", ip)

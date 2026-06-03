@@ -50,6 +50,13 @@ lgtv --ssl openBrowserAt https://youtube.com
 }
 ```
 
+## Apps (no es Android APK)
+
+- **Listar / abrir / cerrar** apps: `lgtv --ssl listApps`, `startApp <id>`, `closeApp <id>`.
+- Las TVs LG usan **webOS**, no instalan `.apk` de Android.
+- Para instalar paquetes propios: LG Content Store o [webOS TV CLI](https://webostv.developer.lge.com/develop/tools/cli-dev-guide) (`ares-install` con `.ipk`).
+- Desinstalar apps de usuario: normalmente desde la TV (editar lista de apps) o `ares-install --remove`.
+
 ## Troubleshooting
 
 - **Pairing**: pulsar Autenticar y aceptar en la TV.
