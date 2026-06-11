@@ -1,0 +1,53 @@
+<div id="remote-modal-{{ ip }}" class="modal-overlay">
+  <div class="modal" style="max-width:360px;">
+    <div class="modal-header">
+      <h3>🎮 {{ name or 'Control remoto' }}</h3>
+      <button class="btn btn-secondary btn-sm" onclick="closeRemoteModal('{{ ip }}')">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;">
+      <div class="remote-grid">
+        <div style="grid-row:1; grid-column:1;"></div>
+        <div style="grid-row:1; grid-column:2;">
+          <button class="btn btn-remote" onclick="keyevent('{{ ip }}', 19)" title="Arriba">⬆</button>
+        </div>
+        <div style="grid-row:1; grid-column:3;"></div>
+
+        <div style="grid-row:2; grid-column:1;">
+          <button class="btn btn-remote" onclick="keyevent('{{ ip }}', 21)" title="Izquierda">⬅</button>
+        </div>
+        <div style="grid-row:2; grid-column:2;">
+          <button class="btn btn-remote btn-ok" onclick="keyevent('{{ ip }}', 23)" title="OK">OK</button>
+        </div>
+        <div style="grid-row:2; grid-column:3;">
+          <button class="btn btn-remote" onclick="keyevent('{{ ip }}', 22)" title="Derecha">➡</button>
+        </div>
+
+        <div style="grid-row:3; grid-column:1;"></div>
+        <div style="grid-row:3; grid-column:2;">
+          <button class="btn btn-remote" onclick="keyevent('{{ ip }}', 20)" title="Abajo">⬇</button>
+        </div>
+        <div style="grid-row:3; grid-column:3;"></div>
+
+        <div style="grid-row:4; grid-column:1; border-top:1px solid #333; padding-top:6px;">
+          <button class="btn btn-remote" onclick="keyevent('{{ ip }}', 3)" title="Home">🏠</button>
+        </div>
+        <div style="grid-row:4; grid-column:2; border-top:1px solid #333; padding-top:6px;">
+          <button class="btn btn-remote" onclick="keyevent('{{ ip }}', 4)" title="Atrás">◀</button>
+        </div>
+        <div style="grid-row:4; grid-column:3; border-top:1px solid #333; padding-top:6px;">
+          <button class="btn btn-remote" onclick="sendText('{{ ip }}')" title="Teclado">⌨️</button>
+        </div>
+
+        <div style="grid-row:5; grid-column:1;">
+          <button class="btn btn-remote btn-vol" onclick="keyevent('{{ ip }}', 24)" title="Subir volumen">🔊+</button>
+        </div>
+        <div style="grid-row:5; grid-column:2;">
+          <button class="btn btn-remote btn-vol" onclick="keyevent('{{ ip }}', 25)" title="Bajar volumen">🔊−</button>
+        </div>
+        <div style="grid-row:5; grid-column:3;">
+          <button class="btn btn-remote" onclick="keyevent('{{ ip }}', 26)" title="Power (standby)">⏻</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

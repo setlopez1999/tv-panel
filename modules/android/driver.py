@@ -1,5 +1,6 @@
 import os
 import subprocess
+import time
 
 from tools_paths import get_adb_path, get_scrcpy_dir, get_scrcpy_path, tools_info
 
@@ -52,7 +53,20 @@ class AndroidDriver:
         return self._adb_args("-s", self.device_code, *parts)
 
     def connect(self):
-        return self._run(self._adb_args("connect", self.device_code))
+        for attempt in range(5):
+            result = self._run(self._adb_args("connect", self.device_code))
+            msg = (result.get("message") or "").lower()
+            if result.get("success") or "already connected" in msg:
+                return result
+            if "failed to authenticate" in msg or "unauthorized" in msg or "device offline" in msg:
+                if attempt < 4:
+                    time.sleep(3)
+                    result["message"] = (
+                        f"Intento {attempt + 1}/5 — Acepta el popup de depuración en la TV y espera..."
+                    )
+                    continue
+            return result
+        return result
 
     def disconnect(self):
         return self._run(self._adb_args("disconnect", self.device_code))

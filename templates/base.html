@@ -145,6 +145,40 @@
             word-break: break-all;
         }
         .btn-sm { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
+        .remote-grid {
+            display: inline-grid;
+            grid-template-columns: repeat(3, 64px);
+            gap: 8px 6px;
+            justify-content: center;
+            margin: 0.2rem 0;
+        }
+        .btn-remote {
+            width: 58px;
+            height: 48px;
+            padding: 0;
+            font-size: 1.2rem;
+            line-height: 48px;
+            text-align: center;
+            border-radius: 10px;
+            background: #0f3460;
+            border: 1px solid #1a4a7a;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-remote:hover { background: #1a4a7a; border-color: #e94560; transform: scale(1.05); }
+        .btn-ok {
+            background: #16c79a;
+            border-color: #1ae0a8;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .btn-ok:hover { background: #13b389; }
+        .btn-vol {
+            background: #1a1a2e;
+            border-color: #555;
+            font-size: 1.1rem;
+        }
+        .btn-vol:hover { background: #333; border-color: #e94560; }
     </style>
     <script>
         function log(message, type) {
@@ -199,6 +233,23 @@
                 return { success: false, message: e.message };
             }
         }
+
+
+        function openRemoteModal(ip) {
+            const el = document.getElementById('remote-modal-' + ip);
+            if (el) el.classList.add('open');
+        }
+
+        function closeRemoteModal(ip) {
+            const el = document.getElementById('remote-modal-' + ip);
+            if (el) el.classList.remove('open');
+        }
+
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal-overlay')) {
+                e.target.classList.remove('open');
+            }
+        });
     </script>
 </head>
 <body>

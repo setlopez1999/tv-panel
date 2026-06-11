@@ -91,12 +91,6 @@
             "visible": false
           },
           {
-            "id": "america.tv.go",
-            "title": "América tvGO",
-            "removable": true,
-            "visible": true
-          },
-          {
             "id": "com.webos.app.appcasting",
             "title": "APP CASTING",
             "removable": false,
@@ -601,12 +595,6 @@
             "visible": false
           },
           {
-            "id": "kocowa.app-1.19201",
-            "title": "KOCOWA+",
-            "removable": true,
-            "visible": true
-          },
-          {
             "id": "com.latintv.hosted",
             "title": "Latin TV",
             "removable": true,
@@ -623,12 +611,6 @@
             "title": "Learning",
             "removable": false,
             "visible": false
-          },
-          {
-            "id": "com.webos.app.lgchannels",
-            "title": "LG Channels",
-            "removable": false,
-            "visible": true
           },
           {
             "id": "com.webos.app.lifeonscreen",
@@ -723,6 +705,12 @@
           {
             "id": "com.mifibrago.hosted",
             "title": "Mi Fibra GO",
+            "removable": true,
+            "visible": true
+          },
+          {
+            "id": "com.mubi",
+            "title": "MUBI",
             "removable": true,
             "visible": true
           },
@@ -895,12 +883,6 @@
             "visible": false
           },
           {
-            "id": "com.tidal.tv",
-            "title": "TIDAL",
-            "removable": true,
-            "visible": true
-          },
-          {
             "id": "com.webos.app.tinybrowser",
             "title": "tinybrowser",
             "removable": false,
@@ -977,7 +959,7 @@
     ],
     "android": [
       {
-        "name": "TV Android Sala",
+        "name": "ANDROID_2-0",
         "ip": "192.168.0.106",
         "device_code": "192.168.0.106:5555",
         "status": "unknown",
@@ -1065,6 +1047,102 @@
           "tv.trapemn.cablevisioncvstv",
           "tv.trapemn.hoteles",
           "tv.trapemn.onetest"
+        ]
+      },
+      {
+        "name": "ANDROID_1-1",
+        "ip": "192.168.0.43",
+        "device_code": "192.168.0.43:5555",
+        "status": "unknown",
+        "cached_packages": [
+          "ch.protonvpn.android",
+          "co.nuplin.tv",
+          "com.android.cdlatam.ntltv",
+          "com.anydesk.anydeskandroid",
+          "com.apgsolutionsllc.APGSOLUTIONSLLC0007",
+          "com.claxson.hotgo.tv",
+          "com.disney.disneyplus",
+          "com.dp.logcatapp",
+          "com.dsi.ant.plugins.antplus",
+          "com.dsi.ant.service.socket",
+          "com.esaba.downloader",
+          "com.google.android.apps.tachyon",
+          "com.hitv.explore",
+          "com.kapron.ap.aicamview.tv",
+          "com.mobisystems.fileman",
+          "com.smartboxtv.nunchee.android.liga1play",
+          "com.spotify.tv.android",
+          "com.tcl.browser",
+          "com.uptodown",
+          "com.wbd.stream",
+          "com.yablio.sendfilestotv",
+          "com.yeacomono.expochapitecapp",
+          "flar2.homebutton",
+          "org.videolan.vlc",
+          "pe.com.americatv.tvgo.tv",
+          "tv.cdlatam.android.flextv.tv",
+          "tv.cdlatam.android.megatel.tv",
+          "tv.cdlatam.android.nexoplay.tv",
+          "tv.cdlatam.hiltonhotel",
+          "tv.cdlatam.latintv.tv",
+          "tv.cdlatam.nexotv.tv",
+          "tv.cdlatam.ntltv.tv",
+          "tv.cdlatam.streamlink.tv",
+          "tv.cdlatam.tvplus.tv",
+          "tv.cdlatamtv.android.bantel.tv",
+          "tv.cdlatamtv.android.bantelprueba.tv",
+          "tv.cdlatamtv.android.cirrus.tv",
+          "tv.cdlatamtv.android.comcanet.tv",
+          "tv.cdlatamtv.android.streetfiber.tv",
+          "tv.pluto.android",
+          "tv.trapemn.android.bantel.tv",
+          "tv.trapemn.android.cablered.tv",
+          "tv.trapemn.android.coltrahue.tv",
+          "tv.trapemn.android.comcanet.tv",
+          "tv.trapemn.android.compunetwork.tv",
+          "tv.trapemn.android.demoiptv.tv",
+          "tv.trapemn.android.ega.tv",
+          "tv.trapemn.android.fibergoplus.tv",
+          "tv.trapemn.android.fibraspltv.tv",
+          "tv.trapemn.android.iwaytv.tv",
+          "tv.trapemn.android.megateltv.tv",
+          "tv.trapemn.android.miran2.tv",
+          "tv.trapemn.android.mitplay",
+          "tv.trapemn.android.nextgen.tv",
+          "tv.trapemn.android.oneplaychile.tv",
+          "tv.trapemn.android.oneplaycolombia",
+          "tv.trapemn.android.oneplayperu.tv",
+          "tv.trapemn.android.patagoniabysurbittv",
+          "tv.trapemn.android.playcom.tv",
+          "tv.trapemn.android.sitelco.tv",
+          "tv.trapemn.android.spinn.tv",
+          "tv.trapemn.android.telecablesanchez.tv",
+          "tv.trapemn.android.tufibratv.tv",
+          "tv.trapemn.android.wasitv.tv",
+          "tv.trapemn.android.waycomtv.tv",
+          "tv.trapemn.android.wifispeed.tv",
+          "tv.trapemn.android.zapster.tv",
+          "tv.trapemn.android.zoenet.tv",
+          "tv.trapemn.cablevisioncvstv",
+          "tv.trapemn.hoteldostadelsol",
+          "tv.trapemn.hotelintercontinental",
+          "tv.trapemn.inkaterra",
+          "tv.trapemn.wasi"
+        ]
+      },
+      {
+        "name": "ANDROID_1-0",
+        "ip": "192.168.0.187",
+        "device_code": "192.168.0.187:5555",
+        "status": "unknown",
+        "cached_packages": [
+          "com.disney.disneyplus",
+          "com.frogmind.badland",
+          "com.iqiyi.i18n.tv",
+          "com.mercadolibre.android.mplay_tv",
+          "com.wbd.stream",
+          "tv.cdlatam.ntltv.tv",
+          "tv.cdlatamtv.android.banteltvplus.tv"
         ]
       }
     ]

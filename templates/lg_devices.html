@@ -48,6 +48,8 @@
             <input type="text" id="ares-device-{{ tv.ip }}" value="{{ tv.ares_device or '' }}" placeholder="lgtv_1">
             <label>Puerto (9922)</label>
             <input type="number" id="ares-port-{{ tv.ip }}" value="{{ tv.ares_port or 9922 }}" style="width:100px;">
+            <label>Usuario (developer)</label>
+            <input type="text" id="ares-user-{{ tv.ip }}" value="developer" style="width:120px;">
             <button class="btn btn-secondary" onclick="saveAresConfig('{{ tv.ip }}')">💾 Guardar</button>
             <button class="btn" onclick="aresSetup('{{ tv.ip }}')">1️⃣ Registrar en ares</button>
         </div>

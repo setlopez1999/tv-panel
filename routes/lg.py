@@ -15,6 +15,7 @@ from config import (
 )
 from modules.lg.ares_driver import AresDriver
 from modules.lg.driver import LGDriver
+from tools_paths import tools_info
 
 lg_bp = Blueprint("lg", __name__)
 
@@ -50,7 +51,7 @@ def _require_ares(ip: str):
 @lg_bp.route("/lg")
 def lg_page():
     devices = legacy_view(load_devices())
-    return render_template("lg_devices.html", tvs=devices["lg_tvs"])
+    return render_template("lg_devices.html", tvs=devices["lg_tvs"], tools=tools_info())
 
 
 @lg_bp.route("/api/lg/scan", methods=["POST"])

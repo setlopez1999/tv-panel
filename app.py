@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 
 from config import add_android_device, add_lg_tv, get_server_ip, legacy_view, load_devices, rename_device
 from modules.registry import list_connection_types
@@ -101,7 +101,7 @@ def health():
 
 if __name__ == "__main__":
     t = tools_info()
-    print(f"TV Control Panel → http://{get_server_ip()}:5000")
+    print(f"TV Control Panel -> http://{get_server_ip()}:5000")
     print(f"ADB: {t['adb']}")
     print(f"scrcpy: {t['scrcpy']}")
     print(f"ares: {t['ares']} ({'OK' if t.get('ares_ok') else 'no instalado'})")

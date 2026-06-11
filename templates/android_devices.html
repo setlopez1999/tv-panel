@@ -38,12 +38,9 @@
         <button class="btn btn-success" onclick="quickUrlAndroid('{{ device.ip }}', 'https://youtube.com')">▶ YouTube</button>
         <button class="btn" onclick="openUrlAndroid('{{ device.ip }}')">🌐 URL</button>
 
-        <p style="margin-top:0.8rem;"><strong>Control</strong></p>
-        <button class="btn btn-secondary" onclick="keyevent('{{ device.ip }}', 3)">🏠</button>
-        <button class="btn btn-secondary" onclick="keyevent('{{ device.ip }}', 4)">◀</button>
-        <button class="btn btn-secondary" onclick="keyevent('{{ device.ip }}', 24)">🔊+</button>
-        <button class="btn btn-secondary" onclick="keyevent('{{ device.ip }}', 25)">🔊−</button>
-        <button class="btn" onclick="sendText('{{ device.ip }}')">⌨️</button>
+        <p style="margin-top:0.8rem;"><strong>Control remoto</strong></p>
+        <button class="btn btn-secondary" onclick="openRemoteModal('{{ device.ip }}')">🎮 Abrir control remoto</button>
+        {% with ip=device.ip, name=device.name %}{% include "_remote_control.html" %}{% endwith %}
 
         <div id="url-form-{{ device.ip }}" style="display:none; margin-top:0.5rem;">
             <input type="text" id="url-input-{{ device.ip }}" value="https://youtube.com">
